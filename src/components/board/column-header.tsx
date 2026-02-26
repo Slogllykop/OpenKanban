@@ -1,22 +1,39 @@
 "use client";
 
-import { IconDots, IconTrash } from "@tabler/icons-react";
+import {
+  IconArrowLeft,
+  IconArrowRight,
+  IconDots,
+  IconLayoutSidebarRightCollapse,
+  IconPencil,
+  IconTrash,
+} from "@tabler/icons-react";
 import { useEffect, useRef, useState } from "react";
 
 interface ColumnHeaderProps {
   title: string;
   taskCount: number;
   canDelete: boolean;
+  canShiftLeft?: boolean;
+  canShiftRight?: boolean;
   onRename: (title: string) => void;
   onDelete: () => void;
+  onShiftLeft?: () => void;
+  onShiftRight?: () => void;
+  onToggleCollapse: () => void;
 }
 
 export function ColumnHeader({
   title,
   taskCount,
   canDelete,
+  canShiftLeft,
+  canShiftRight,
   onRename,
   onDelete,
+  onShiftLeft,
+  onShiftRight,
+  onToggleCollapse,
 }: ColumnHeaderProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState(title);
@@ -85,47 +102,93 @@ export function ColumnHeader({
         </span>
       </div>
 
-      {/* Column menu */}
-      <div className="relative" ref={menuRef}>
+      <div className="flex items-center gap-1">
+        {/* Collapse column button */}
         <button
           type="button"
-          onClick={() => setShowMenu(!showMenu)}
+          onClick={onToggleCollapse}
           className="rounded-md p-1 text-text-muted transition-colors hover:bg-surface-overlay hover:text-text-primary cursor-pointer"
+          aria-label="Collapse column"
+          title="Collapse column"
         >
-          <IconDots size={16} />
+          <IconLayoutSidebarRightCollapse size={16} />
         </button>
-        {showMenu && (
-          <div
-            className="absolute right-0 top-8 z-20 w-36 rounded-lg border border-border bg-surface-overlay py-1 shadow-xl"
-            style={{ animation: "scale-in 100ms ease-out" }}
+
+        {/* Column menu */}
+        <div className="relative" ref={menuRef}>
+          <button
+            type="button"
+            onClick={() => setShowMenu(!showMenu)}
+            className="rounded-md p-1 text-text-muted transition-colors hover:bg-surface-overlay hover:text-text-primary cursor-pointer"
           >
-            <button
-              type="button"
-              onClick={() => {
-                setIsEditing(true);
-                setShowMenu(false);
-              }}
-              className="w-full px-3 py-1.5 text-left text-xs text-text-secondary hover:bg-surface-raised hover:text-text-primary cursor-pointer"
+            <IconDots size={16} />
+          </button>
+          {showMenu && (
+            <div
+              className="absolute right-0 top-8 z-20 w-36 rounded-lg border border-border bg-surface-overlay py-1 shadow-xl"
+              style={{ animation: "scale-in 100ms ease-out" }}
             >
-              Rename
-            </button>
-            {canDelete && (
               <button
                 type="button"
                 onClick={() => {
-                  onDelete();
+                  setIsEditing(true);
                   setShowMenu(false);
                 }}
-                className="w-full px-3 py-1.5 text-left text-xs text-red-400 hover:bg-red-500/10 cursor-pointer"
+                className="w-full px-3 py-1.5 text-left text-xs text-text-secondary hover:bg-surface-raised hover:text-text-primary cursor-pointer"
               >
                 <span className="flex items-center gap-1.5">
-                  <IconTrash size={12} />
-                  Delete column
+                  <IconPencil size={12} />
+                  Rename
                 </span>
               </button>
-            )}
-          </div>
-        )}
+              {canShiftLeft && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    onShiftLeft?.();
+                    setShowMenu(false);
+                  }}
+                  className="w-full px-3 py-1.5 text-left text-xs text-text-secondary hover:bg-surface-raised hover:text-text-primary cursor-pointer"
+                >
+                  <span className="flex items-center gap-1.5">
+                    <IconArrowLeft size={12} />
+                    Shift left
+                  </span>
+                </button>
+              )}
+              {canShiftRight && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    onShiftRight?.();
+                    setShowMenu(false);
+                  }}
+                  className="w-full px-3 py-1.5 text-left text-xs text-text-secondary hover:bg-surface-raised hover:text-text-primary cursor-pointer"
+                >
+                  <span className="flex items-center gap-1.5">
+                    <IconArrowRight size={12} />
+                    Shift right
+                  </span>
+                </button>
+              )}
+              {canDelete && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    onDelete();
+                    setShowMenu(false);
+                  }}
+                  className="w-full px-3 py-1.5 text-left text-xs text-red-400 hover:bg-red-500/10 cursor-pointer"
+                >
+                  <span className="flex items-center gap-1.5">
+                    <IconTrash size={12} />
+                    Delete column
+                  </span>
+                </button>
+              )}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

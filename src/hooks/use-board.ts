@@ -28,18 +28,35 @@ interface UseBoardOptions {
   slug: string;
   initialBoard: Board | null;
   initialColumns: ColumnWithTasks[];
-  /** Called after every DB write — used to trigger broadcast sync */
+  /** Called after every DB write - used to trigger broadcast sync */
   onMutation?: () => void;
 }
 
 /** Create a local-only column (not yet persisted to DB) */
-function makeLocalColumn(title: string, position: number): ColumnWithTasks {
+function makeLocalColumn(
+  title: string,
+  position: number,
+  id?: string,
+): ColumnWithTasks {
   return {
-    id: `local-${crypto.randomUUID()}`,
+    id: id || `local-${crypto.randomUUID()}`,
     board_id: "",
     title,
     position,
+    is_collapsed: false,
     created_at: new Date().toISOString(),
+    tasks: [],
+  };
+}
+
+function getInitialLocalColumn(): ColumnWithTasks {
+  return {
+    id: "local-initial-todo",
+    board_id: "",
+    title: "To Do",
+    position: 0,
+    is_collapsed: false,
+    created_at: "2026-01-01T00:00:00.000Z",
     tasks: [],
   };
 }
@@ -53,7 +70,7 @@ export function useBoard({
   const [board, setBoard] = useState<Board | null>(initialBoard);
   const [columns, setColumns] = useState<ColumnWithTasks[]>(() => {
     if (initialColumns.length > 0) return initialColumns;
-    return [makeLocalColumn("To Do", 0)];
+    return [getInitialLocalColumn()];
   });
   const [isLoading, setIsLoading] = useState(false);
 
@@ -77,7 +94,7 @@ export function useBoard({
       isPersistedRef.current = true;
       setBoard(data.board);
       setColumns(
-        data.columns.length > 0 ? data.columns : [makeLocalColumn("To Do", 0)],
+        data.columns.length > 0 ? data.columns : [getInitialLocalColumn()],
       );
     }
   }, [slug, supabase]);
@@ -124,11 +141,8 @@ export function useBoard({
       try {
         const currentBoard = boardRef.current;
         if (!currentBoard) return;
-        let position = 0;
-        setColumns((prev) => {
-          position = prev.length;
-          return prev;
-        });
+
+        const position = columns.length;
         const newCol = await createColumn(supabase, {
           board_id: currentBoard.id,
           title,
@@ -140,7 +154,7 @@ export function useBoard({
         setIsLoading(false);
       }
     },
-    [supabase],
+    [supabase, columns],
   );
 
   const renameColumn = useCallback(
@@ -148,8 +162,23 @@ export function useBoard({
       setColumns((prev) =>
         prev.map((col) => (col.id === columnId ? { ...col, title } : col)),
       );
-      if (isPersistedRef.current) {
+      if (isPersistedRef.current && !columnId.startsWith("local-")) {
         await updateColumn(supabase, { id: columnId, title });
+        onMutationRef.current?.();
+      }
+    },
+    [supabase],
+  );
+
+  const toggleColumnCollapse = useCallback(
+    async (columnId: string, is_collapsed: boolean) => {
+      setColumns((prev) =>
+        prev.map((col) =>
+          col.id === columnId ? { ...col, is_collapsed } : col,
+        ),
+      );
+      if (isPersistedRef.current && !columnId.startsWith("local-")) {
+        await updateColumn(supabase, { id: columnId, is_collapsed });
         onMutationRef.current?.();
       }
     },
@@ -158,19 +187,38 @@ export function useBoard({
 
   const removeColumn = useCallback(
     async (columnId: string) => {
-      let shouldDelete = false;
-      setColumns((prev) => {
-        if (prev.length <= 1) return prev; // Keep at least 1 column
-        shouldDelete = true;
-        const filtered = prev.filter((col) => col.id !== columnId);
-        return filtered.map((col, i) => ({ ...col, position: i }));
-      });
-      if (shouldDelete && isPersistedRef.current) {
-        await dbDeleteColumn(supabase, columnId);
-        onMutationRef.current?.();
+      if (columns.length <= 1) return; // Keep at least 1 column
+
+      const filtered = columns.filter((col) => col.id !== columnId);
+      const newCols = filtered.map((col, i) => ({ ...col, position: i }));
+
+      const colUpdates: Column[] = newCols.map((col) => ({
+        id: col.id,
+        board_id: col.board_id,
+        title: col.title,
+        position: col.position,
+        is_collapsed: col.is_collapsed,
+        created_at: col.created_at,
+      }));
+
+      // Update UI optimistically
+      setColumns(newCols);
+
+      if (isPersistedRef.current) {
+        try {
+          await dbDeleteColumn(supabase, columnId);
+          if (colUpdates.length > 0) {
+            await updateColumnPositions(supabase, colUpdates).catch(
+              console.error,
+            );
+          }
+          onMutationRef.current?.();
+        } catch (error) {
+          console.error(`[removeColumn] dbDeleteColumn failed!`, error);
+        }
       }
     },
-    [supabase],
+    [columns, supabase],
   );
 
   // -----------------------------------------------------------------------
@@ -182,13 +230,9 @@ export function useBoard({
       try {
         if (!isPersistedRef.current) {
           // First task triggers full persistence
-          let snapshot: ColumnWithTasks[] = [];
-          setColumns((prev) => {
-            snapshot = prev;
-            return prev;
-          });
-
+          const snapshot = columns;
           const { board: newBoard, idMap } = await persistBoard(snapshot);
+
           const dbColumnId = idMap.get(columnId) ?? columnId;
           const targetCol = snapshot.find((c) => c.id === columnId);
           const position = targetCol ? targetCol.tasks.length : 0;
@@ -215,23 +259,46 @@ export function useBoard({
         }
 
         // Normal persisted flow
-        let position = 0;
-        setColumns((prev) => {
-          const col = prev.find((c) => c.id === columnId);
-          position = col ? col.tasks.length : 0;
-          return prev;
-        });
+        let targetColumnId = columnId;
+
+        // Defensive recovery: If board is persisted but this column is somehow still 'local-',
+        // it means a previous operation partially failed (or Fast Refresh preserved stale state).
+        // Save the column to the database right now.
+        if (columnId.startsWith("local-") && isPersistedRef.current) {
+          const currentBoard = boardRef.current;
+          const targetCol = columns.find((c) => c.id === columnId);
+          if (currentBoard && targetCol) {
+            const newCol = await createColumn(supabase, {
+              board_id: currentBoard.id,
+              title: targetCol.title,
+              position: targetCol.position,
+            });
+            targetColumnId = newCol.id;
+            // Update state so the column ID is accurate
+            setColumns((prev) =>
+              prev.map((c) =>
+                c.id === columnId ? { ...c, id: newCol.id } : c,
+              ),
+            );
+          }
+        }
+
+        const col = columns.find((c) => c.id === columnId);
+        const position = col ? col.tasks.length : 0;
 
         const payload: CreateTaskPayload = {
-          column_id: columnId,
+          column_id: targetColumnId,
           title,
           priority,
           position,
         };
         const newTask = await createTask(supabase, payload);
+
         setColumns((prev) =>
           prev.map((c) =>
-            c.id === columnId ? { ...c, tasks: [...c.tasks, newTask] } : c,
+            c.id === columnId || c.id === targetColumnId
+              ? { ...c, id: targetColumnId, tasks: [...c.tasks, newTask] }
+              : c,
           ),
         );
         onMutationRef.current?.();
@@ -239,7 +306,7 @@ export function useBoard({
         setIsLoading(false);
       }
     },
-    [persistBoard, supabase],
+    [persistBoard, supabase, columns],
   );
 
   const editTask = useCallback(
@@ -282,7 +349,7 @@ export function useBoard({
   );
 
   // -----------------------------------------------------------------------
-  // Drag & Drop — compute updates inside setColumns callback (synchronous)
+  // Drag & Drop - compute updates inside setColumns callback (synchronous)
   // -----------------------------------------------------------------------
   const moveTask = useCallback(
     async (
@@ -291,84 +358,77 @@ export function useBoard({
       sourceIndex: number,
       destIndex: number,
     ) => {
-      const tasksToUpdate: Task[] = [];
+      const newCols = columns.map((col) => ({
+        ...col,
+        tasks: [...col.tasks],
+      }));
 
-      setColumns((prev) => {
-        const newCols = prev.map((col) => ({
-          ...col,
-          tasks: [...col.tasks],
-        }));
+      const sourceCol = newCols.find((c) => c.id === sourceColId);
+      const destCol = newCols.find((c) => c.id === destColId);
+      if (!sourceCol || !destCol) return;
 
-        const sourceCol = newCols.find((c) => c.id === sourceColId);
-        const destCol = newCols.find((c) => c.id === destColId);
-        if (!sourceCol || !destCol) return prev;
+      const [movedTask] = sourceCol.tasks.splice(sourceIndex, 1);
+      if (!movedTask) return;
 
-        const [movedTask] = sourceCol.tasks.splice(sourceIndex, 1);
-        if (!movedTask) return prev;
+      movedTask.column_id = destColId;
+      destCol.tasks.splice(destIndex, 0, movedTask);
 
-        movedTask.column_id = destColId;
-        destCol.tasks.splice(destIndex, 0, movedTask);
-
-        sourceCol.tasks.forEach((t, i) => {
-          t.position = i;
-        });
-        destCol.tasks.forEach((t, i) => {
-          t.position = i;
-        });
-
-        // Collect affected tasks for DB update
-        const affected =
-          sourceColId === destColId ? [destCol] : [sourceCol, destCol];
-        for (const col of affected) {
-          for (const task of col.tasks) {
-            tasksToUpdate.push({
-              ...task,
-              column_id: col.id,
-              position: task.position,
-            });
-          }
-        }
-
-        return newCols;
+      sourceCol.tasks.forEach((t, i) => {
+        t.position = i;
+      });
+      destCol.tasks.forEach((t, i) => {
+        t.position = i;
       });
 
-      // setColumns callback ran synchronously — tasksToUpdate is populated
+      setColumns(newCols);
+
+      // Collect affected tasks for DB update
+      const tasksToUpdate: Task[] = [];
+      const affected =
+        sourceColId === destColId ? [destCol] : [sourceCol, destCol];
+      for (const col of affected) {
+        for (const task of col.tasks) {
+          tasksToUpdate.push({
+            ...task,
+            column_id: col.id,
+            position: task.position,
+          });
+        }
+      }
+
       if (isPersistedRef.current && tasksToUpdate.length > 0) {
         await updateTaskPositions(supabase, tasksToUpdate).catch(console.error);
         onMutationRef.current?.();
       }
     },
-    [supabase],
+    [supabase, columns],
   );
 
   const moveColumn = useCallback(
     async (sourceIndex: number, destIndex: number) => {
-      const colUpdates: Column[] = [];
+      const newCols = [...columns];
+      const [moved] = newCols.splice(sourceIndex, 1);
+      if (!moved) return;
+      newCols.splice(destIndex, 0, moved);
+      const result = newCols.map((col, i) => ({ ...col, position: i }));
 
-      setColumns((prev) => {
-        const newCols = [...prev];
-        const [moved] = newCols.splice(sourceIndex, 1);
-        if (!moved) return prev;
-        newCols.splice(destIndex, 0, moved);
-        const result = newCols.map((col, i) => ({ ...col, position: i }));
-        for (const col of result) {
-          colUpdates.push({
-            id: col.id,
-            board_id: col.board_id,
-            title: col.title,
-            position: col.position,
-            created_at: col.created_at,
-          });
-        }
-        return result;
-      });
+      const colUpdates: Column[] = result.map((col) => ({
+        id: col.id,
+        board_id: col.board_id,
+        title: col.title,
+        position: col.position,
+        is_collapsed: col.is_collapsed,
+        created_at: col.created_at,
+      }));
+
+      setColumns(result);
 
       if (isPersistedRef.current && colUpdates.length > 0) {
         await updateColumnPositions(supabase, colUpdates).catch(console.error);
         onMutationRef.current?.();
       }
     },
-    [supabase],
+    [supabase, columns],
   );
 
   // -----------------------------------------------------------------------
@@ -381,7 +441,7 @@ export function useBoard({
     boardRef.current = null;
     isPersistedRef.current = false;
     setBoard(null);
-    setColumns([makeLocalColumn("To Do", 0)]);
+    setColumns([getInitialLocalColumn()]);
   }, [supabase]);
 
   // -----------------------------------------------------------------------
@@ -393,7 +453,7 @@ export function useBoard({
       isPersistedRef.current = newBoard !== null;
       setBoard(newBoard);
       setColumns(
-        newColumns.length > 0 ? newColumns : [makeLocalColumn("To Do", 0)],
+        newColumns.length > 0 ? newColumns : [getInitialLocalColumn()],
       );
     },
     [],
@@ -405,6 +465,7 @@ export function useBoard({
     isLoading,
     addColumn,
     renameColumn,
+    toggleColumnCollapse,
     removeColumn,
     addTask,
     editTask,

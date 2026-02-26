@@ -9,7 +9,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "OpenKanban — Your Board, Your URL",
+  title: "OpenKanban - Your Board, Your URL",
   description:
     "A sleek, real-time Kanban board with no signup required. Just type a URL and start organizing.",
   keywords: ["kanban", "project management", "realtime", "board"],

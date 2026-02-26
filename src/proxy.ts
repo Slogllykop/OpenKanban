@@ -4,7 +4,7 @@ import { type NextRequest, NextResponse } from "next/server";
  * Sanitize a URL slug:
  * 1. Lowercase
  * 2. Replace spaces and underscores with dashes
- * 3. Strip everything except a-z and -
+ * 3. Replace all illegal characters (not a-z or -) with dashes
  * 4. Collapse consecutive dashes
  * 5. Trim leading/trailing dashes
  */
@@ -12,12 +12,12 @@ function sanitizeSlug(raw: string): string {
   return raw
     .toLowerCase()
     .replace(/[\s_]/g, "-")
-    .replace(/[^a-z-]/g, "")
+    .replace(/[^a-z-]/g, "-")
     .replace(/-{2,}/g, "-")
     .replace(/^-+|-+$/g, "");
 }
 
-/** Paths to skip — static assets, API routes, Next internals */
+/** Paths to skip - static assets, API routes, Next internals */
 const IGNORED_PREFIXES = ["/_next", "/api", "/favicon.ico"];
 
 export function proxy(request: NextRequest) {

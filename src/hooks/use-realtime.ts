@@ -1,8 +1,8 @@
 "use client";
 
+import type { RealtimeChannel } from "@supabase/supabase-js";
 import { useCallback, useEffect, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
-import type { RealtimeChannel } from "@supabase/supabase-js";
 
 interface UseRealtimeOptions {
   slug: string;

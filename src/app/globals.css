@@ -1,11 +1,11 @@
 @import "tailwindcss";
 
 /* ----------------------------------------------------------------
-   Design Tokens — Dark mode only, Black/White/Padparadscha
+   Design Tokens - Dark mode only, Black/White/Padparadscha
    ---------------------------------------------------------------- */
 
 @theme inline {
-  /* Accent — Padparadscha (warm salmon-coral) */
+  /* Accent - Padparadscha (warm salmon-coral) */
   --color-accent: #e8967d;
   --color-accent-hover: #d4816a;
   --color-accent-muted: #e8967d33;

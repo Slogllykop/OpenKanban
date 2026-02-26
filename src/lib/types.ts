@@ -12,6 +12,7 @@ export interface Column {
   board_id: string;
   title: string;
   position: number;
+  is_collapsed: boolean;
   created_at: string;
 }
 
@@ -68,4 +69,5 @@ export interface UpdateColumnPayload {
   id: string;
   title?: string;
   position?: number;
+  is_collapsed?: boolean;
 }

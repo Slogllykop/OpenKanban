@@ -24,7 +24,7 @@ interface BoardProps {
 export function Board({ slug, initialBoard, initialColumns }: BoardProps) {
   const router = useRouter();
 
-  // Ref to hold refreshFromDB — avoids circular dependency between hooks
+  // Ref to hold refreshFromDB - avoids circular dependency between hooks
   const refreshRef = useRef<(() => Promise<void>) | undefined>(undefined);
 
   // Realtime: broadcast sync after every mutation, refetch on incoming sync
@@ -39,11 +39,13 @@ export function Board({ slug, initialBoard, initialColumns }: BoardProps) {
     columns,
     addColumn,
     renameColumn,
+    toggleColumnCollapse,
     removeColumn,
     addTask,
     editTask,
     removeTask,
     moveTask,
+    moveColumn,
     removeBoard,
     refreshFromDB,
   } = useBoard({
@@ -146,13 +148,18 @@ export function Board({ slug, initialBoard, initialColumns }: BoardProps) {
 
       <DragDropContext onDragEnd={onDragEnd}>
         <div className="board-scroll flex flex-1 gap-4 overflow-x-auto p-4 md:p-6">
-          {columns.map((column) => (
+          {columns.map((column, index) => (
             <Column
               key={column.id}
               column={column}
               canDelete={columns.length > 1}
+              canShiftLeft={index > 0}
+              canShiftRight={index < columns.length - 1}
               onRenameColumn={renameColumn}
+              onToggleCollapse={toggleColumnCollapse}
               onDeleteColumn={(colId) => setDeletingColumnId(colId)}
+              onShiftLeft={() => moveColumn(index, index - 1)}
+              onShiftRight={() => moveColumn(index, index + 1)}
               onAddTask={addTask}
               onEditTask={(task) => setEditingTask(task)}
               onDeleteTask={removeTask}

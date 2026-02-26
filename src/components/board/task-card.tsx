@@ -1,3 +1,6 @@
+/** biome-ignore-all lint/a11y/noStaticElementInteractions: handled by dnd package  */
+/** biome-ignore-all lint/a11y/useSemanticElements: nested buttons */
+/** biome-ignore-all lint/a11y/useKeyWithClickEvents: handled by dragHandleProps */
 "use client";
 
 import { Draggable } from "@hello-pangea/dnd";
@@ -33,26 +36,29 @@ export function TaskCard({ task, index, onEdit, onDelete }: TaskCardProps) {
         <div
           ref={provided.innerRef}
           {...provided.draggableProps}
-          role="button"
-          tabIndex={0}
           onClick={() => onEdit(task)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" || e.key === " ") {
-              e.preventDefault();
-              onEdit(task);
-            }
-          }}
-          className={`group relative cursor-pointer rounded-lg border bg-surface-raised p-3 transition-all duration-150 outline-none focus-visible:ring-1 focus-visible:ring-accent ${
+          className={`group relative cursor-pointer rounded-lg border bg-surface-raised p-3 transition-all duration-150 outline-none has-focus-visible:ring-1 has-focus-visible:ring-accent ${
             snapshot.isDragging
-              ? "border-accent/40 shadow-lg shadow-accent/5 rotate-1 scale-[1.02]"
+              ? "border-accent/40 shadow-lg shadow-accent/5 scale-[1.02]"
               : "border-border hover:border-border-hover"
           }`}
         >
           {/* Drag handle — visible on hover or keyboard focus */}
           <div
             {...provided.dragHandleProps}
+            role="button"
+            tabIndex={0}
+            aria-label={`Task: ${task.title}. Press Space to move, Enter to edit.`}
             onClick={(e) => e.stopPropagation()}
-            onKeyDown={(e) => e.stopPropagation()}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                onEdit(task);
+              }
+              //   else if (provided.dragHandleProps?.onKeyDown) {
+              //     provided.dragHandleProps.onKeyDown(e);
+              //   }
+            }}
             className="absolute top-3 left-1.5 text-text-muted opacity-0 transition-opacity group-hover:opacity-100 focus:opacity-100 focus:outline-none"
           >
             <IconGripVertical size={14} />
@@ -85,7 +91,7 @@ export function TaskCard({ task, index, onEdit, onDelete }: TaskCardProps) {
             </span>
           </div>
 
-          {/* Delete button — visible on hover */}
+          {/* Delete button - visible on hover */}
           <button
             type="button"
             onClick={(e) => {

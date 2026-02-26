@@ -27,7 +27,7 @@ export function BoardToolbar({
     <header className="flex shrink-0 items-center justify-between border-b border-border bg-surface-base px-4 py-3 md:px-6">
       <div className="flex items-center gap-3 min-w-0">
         <h1 className="truncate text-base font-semibold text-text-primary">
-          /{slug}
+          {slug.replaceAll("-", " ")}
         </h1>
 
         {/* Live viewer count */}
