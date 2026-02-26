@@ -1,26 +1,160 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+/* ----------------------------------------------------------------
+   Design Tokens — Dark mode only, Black/White/Padparadscha
+   ---------------------------------------------------------------- */
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  /* Accent — Padparadscha (warm salmon-coral) */
+  --color-accent: #e8967d;
+  --color-accent-hover: #d4816a;
+  --color-accent-muted: #e8967d33;
+
+  /* Surfaces */
+  --color-surface-base: #000000;
+  --color-surface-raised: #0a0a0a;
+  --color-surface-overlay: #111111;
+
+  /* Borders */
+  --color-border: #1a1a1a;
+  --color-border-hover: #2a2a2a;
+  --color-border-accent: #e8967d44;
+
+  /* Text */
+  --color-text-primary: #ffffff;
+  --color-text-secondary: #a1a1a1;
+  --color-text-muted: #666666;
+  --color-text-inverse: #000000;
+
+  /* Priority colors */
+  --color-priority-low: #4a9eff;
+  --color-priority-medium: #f5a623;
+  --color-priority-high: #ff6b6b;
+  --color-priority-urgent: #ff3b3b;
+
+  /* Fonts */
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* ----------------------------------------------------------------
+   Base Styles
+   ---------------------------------------------------------------- */
+
+html {
+  color-scheme: dark;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--color-surface-base);
+  color: var(--color-text-primary);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ----------------------------------------------------------------
+   Custom Scrollbar
+   ---------------------------------------------------------------- */
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #333333;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #444444;
+}
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #333333 transparent;
+}
+
+/* ----------------------------------------------------------------
+   Animations
+   ---------------------------------------------------------------- */
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes pulse-dot {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* ----------------------------------------------------------------
+   Responsive Board Styles
+   ---------------------------------------------------------------- */
+
+/* Momentum scrolling on mobile */
+.board-scroll {
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}
+
+/* Minimum tap target for mobile */
+@media (max-width: 640px) {
+  button,
+  [role="button"] {
+    min-height: 40px;
+    min-width: 40px;
+  }
+}
+
+/* Prevent pull-to-refresh on mobile during drag */
+.dragging {
+  touch-action: none;
+  overscroll-behavior: none;
 }
