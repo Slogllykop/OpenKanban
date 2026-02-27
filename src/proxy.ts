@@ -18,7 +18,13 @@ function sanitizeSlug(raw: string): string {
 }
 
 /** Paths to skip - static assets, API routes, Next internals */
-const IGNORED_PREFIXES = ["/_next", "/api", "/favicon.ico"];
+const IGNORED_PREFIXES = [
+  "/_next",
+  "/api",
+  "/favicon.ico",
+  "/og.png",
+  "/OpenKanban-Logo.png",
+];
 
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -58,8 +64,8 @@ export const config = {
      * Match all paths except:
      * - _next/static (static files)
      * - _next/image (image optimization)
-     * - favicon.ico, sitemap.xml, robots.txt
+     * - favicon.ico, sitemap.xml, robots.txt, og.png, OpenKanban-Logo.png
      */
-    "/((?!_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt).*)",
+    "/((?!_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt|og.png|OpenKanban-Logo.png).*)",
   ],
 };
