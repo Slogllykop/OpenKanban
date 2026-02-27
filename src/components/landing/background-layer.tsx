@@ -14,29 +14,29 @@ export const BackgroundLayer = ({
   const orbY2 = useTransform(scrollYProgress, [0, 1], [0, -800]);
 
   return (
-    <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,#4f4f4f10_1px,transparent_1px),linear-gradient(to_bottom,#4f4f4f10_1px,transparent_1px)] bg-size-[4rem_4rem] mask-[radial-gradient(ellipse_80%_80%_at_50%_0%,#000_70%,transparent_100%)]" />
+    <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
+      <div className="mask-[radial-gradient(ellipse_80%_80%_at_50%_0%,#000_70%,transparent_100%)] absolute inset-0 bg-[linear-gradient(to_right,#4f4f4f10_1px,transparent_1px),linear-gradient(to_bottom,#4f4f4f10_1px,transparent_1px)] bg-size-[4rem_4rem]" />
 
       <motion.div
         style={{ rotate: bgRotate1, y: bgY }}
-        className="absolute top-[-10%] left-[-10%] w-[80vw] h-[80vw] rounded-full border border-neutral-800/50 opacity-80 blur-[2px]"
+        className="absolute top-[-10%] left-[-10%] h-[80vw] w-[80vw] rounded-full border border-neutral-800/50 opacity-80 blur-[2px]"
       />
       <motion.div
         style={{
           rotate: bgRotate2,
           y: bottomBgY,
         }}
-        className="absolute bottom-[-20%] right-[-10%] w-[60vw] h-[60vw] rounded-full border border-dashed border-accent/20 opacity-60 blur-[1px]"
+        className="absolute right-[-10%] bottom-[-20%] h-[60vw] w-[60vw] rounded-full border border-accent/20 border-dashed opacity-60 blur-[1px]"
       />
 
       {/* Glowing Orbs */}
       <motion.div
         style={{ y: orbY1 }}
-        className="absolute top-[20%] left-[10%] w-[30vw] h-[30vw] rounded-full bg-accent/5 blur-[100px]"
+        className="absolute top-[20%] left-[10%] h-[30vw] w-[30vw] rounded-full bg-accent/5 blur-[100px]"
       />
       <motion.div
         style={{ y: orbY2 }}
-        className="absolute top-[60%] right-[10%] w-[40vw] h-[40vw] rounded-full bg-white/5 blur-[120px]"
+        className="absolute top-[60%] right-[10%] h-[40vw] w-[40vw] rounded-full bg-white/5 blur-[120px]"
       />
     </div>
   );

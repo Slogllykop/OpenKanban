@@ -40,22 +40,22 @@ export function Column({
     return (
       <button
         type="button"
-        className="flex h-full w-12 min-w-12 shrink-0 flex-col items-center rounded-xl bg-surface-overlay/30 py-4 cursor-pointer hover:bg-surface-overlay/50 transition-colors border-none text-left"
+        className="flex h-full w-12 min-w-12 shrink-0 cursor-pointer flex-col items-center rounded-xl border-none bg-surface-overlay/30 py-4 text-left transition-colors hover:bg-surface-overlay/50"
         onClick={() => onToggleCollapse(column.id, false)}
         aria-label={`Expand ${column.title} column`}
       >
-        <span className="text-text-muted hover:text-text-primary mb-4 shrink-0 cursor-pointer">
+        <span className="mb-4 shrink-0 cursor-pointer text-text-muted hover:text-text-primary">
           <IconLayoutSidebarRightCollapse size={18} className="rotate-180" />
         </span>
         <div
-          className="flex-1 w-full flex justify-center items-start overflow-hidden py-2"
+          className="flex w-full flex-1 items-start justify-center overflow-hidden py-2"
           style={{ writingMode: "vertical-rl", transform: "rotate(180deg)" }}
         >
-          <div className="text-sm font-semibold text-text-muted whitespace-nowrap overflow-hidden text-ellipsis px-1 -translate-x-1.5">
+          <div className="-translate-x-1.5 overflow-hidden text-ellipsis whitespace-nowrap px-1 font-semibold text-sm text-text-muted">
             {column.title}
           </div>
         </div>
-        <span className="mt-4 shrink-0 rounded-full bg-surface-overlay px-2 py-0.5 text-[10px] font-medium text-text-muted">
+        <span className="mt-4 shrink-0 rounded-full bg-surface-overlay px-2 py-0.5 font-medium text-[10px] text-text-muted">
           {column.tasks.length}
         </span>
       </button>

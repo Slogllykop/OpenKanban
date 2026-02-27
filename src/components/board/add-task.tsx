@@ -32,7 +32,7 @@ export function AddTask({ onAdd }: AddTaskProps) {
       <button
         type="button"
         onClick={() => setIsOpen(true)}
-        className="flex w-full items-center gap-1.5 rounded-lg px-2 py-2 text-xs text-text-muted transition-colors hover:bg-surface-overlay hover:text-text-secondary cursor-pointer"
+        className="flex w-full cursor-pointer items-center gap-1.5 rounded-lg px-2 py-2 text-text-muted text-xs transition-colors hover:bg-surface-overlay hover:text-text-secondary"
       >
         <IconPlus size={14} />
         Add task

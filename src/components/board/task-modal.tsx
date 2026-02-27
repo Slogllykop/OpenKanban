@@ -69,7 +69,7 @@ export function TaskModal({
         <div className="flex flex-col gap-1.5">
           <label
             htmlFor="task-title"
-            className="text-xs font-medium text-text-secondary"
+            className="font-medium text-text-secondary text-xs"
           >
             Title
           </label>
@@ -88,7 +88,7 @@ export function TaskModal({
         <div className="flex flex-col gap-1.5">
           <label
             htmlFor="task-desc"
-            className="text-xs font-medium text-text-secondary"
+            className="font-medium text-text-secondary text-xs"
           >
             Description
             <span className="ml-1 text-text-muted">(optional)</span>
@@ -107,7 +107,7 @@ export function TaskModal({
         <div className="flex flex-col gap-1.5">
           <label
             htmlFor="task-priority"
-            className="text-xs font-medium text-text-secondary"
+            className="font-medium text-text-secondary text-xs"
           >
             Priority
           </label>
@@ -115,7 +115,7 @@ export function TaskModal({
             id="task-priority"
             value={priority}
             onChange={(e) => setPriority(e.target.value as Priority)}
-            className="w-full rounded-md border border-border bg-surface-raised px-3 py-2 text-sm text-text-primary outline-none transition-colors focus:border-accent cursor-pointer"
+            className="w-full cursor-pointer rounded-md border border-border bg-surface-raised px-3 py-2 text-sm text-text-primary outline-none transition-colors focus:border-accent"
           >
             {priorityOptions.map((opt) => (
               <option key={opt.value} value={opt.value}>
@@ -127,7 +127,7 @@ export function TaskModal({
 
         {/* Created date (read-only) */}
         {task && (
-          <p className="text-xs text-text-muted">
+          <p className="text-text-muted text-xs">
             Created{" "}
             {new Date(task.created_at).toLocaleDateString("en-US", {
               month: "long",

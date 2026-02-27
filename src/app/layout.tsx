@@ -72,7 +72,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <body
-        className={`${inter.variable} ${bricolage.variable} font-sans antialiased bg-black text-white`}
+        className={`${inter.variable} ${bricolage.variable} bg-black font-sans text-white antialiased`}
       >
         <script
           type="application/ld+json"

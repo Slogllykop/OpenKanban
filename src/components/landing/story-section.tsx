@@ -27,32 +27,32 @@ export function StorySection({
   return (
     <section
       ref={ref}
-      className="min-h-[60vh] flex items-center px-6 md:px-24 mb-32"
+      className="mb-32 flex min-h-[60vh] items-center px-6 md:px-24"
     >
       <motion.div
         style={{ opacity, y, scale }}
-        className={`w-full max-w-4xl relative ${align === "right" ? "ml-auto text-right" : ""}`}
+        className={`relative w-full max-w-4xl ${align === "right" ? "ml-auto text-right" : ""}`}
       >
         {/* Subtle large background number */}
         <div
-          className={`absolute top-[-20%] ${align === "right" ? "right-[-10%]" : "left-[-10%]"} text-[20vw] font-display font-bold text-neutral-900 select-none pointer-events-none -z-10 leading-none`}
+          className={`absolute top-[-20%] ${align === "right" ? "right-[-10%]" : "left-[-10%]"} -z-10 pointer-events-none select-none font-bold font-display text-[20vw] text-neutral-900 leading-none`}
         >
           0{index}
         </div>
 
-        <h3 className="text-accent font-medium tracking-[0.3em] uppercase text-xs md:text-sm mb-6 flex items-center gap-4 justify-start">
+        <h3 className="mb-6 flex items-center justify-start gap-4 font-medium text-accent text-xs uppercase tracking-[0.3em] md:text-sm">
           {align === "right" && (
-            <span className="flex-1 h-px bg-neutral-800"></span>
+            <span className="h-px flex-1 bg-neutral-800"></span>
           )}
           {subtitle}
           {align === "left" && (
-            <span className="flex-1 h-px bg-neutral-800"></span>
+            <span className="h-px flex-1 bg-neutral-800"></span>
           )}
         </h3>
-        <h2 className="text-5xl sm:text-6xl md:text-8xl font-display font-bold tracking-tighter mb-8 leading-[1.1]">
+        <h2 className="mb-8 font-bold font-display text-5xl leading-[1.1] tracking-tighter sm:text-6xl md:text-8xl">
           {title}
         </h2>
-        <p className="text-xl sm:text-2xl md:text-3xl text-neutral-400 font-light leading-relaxed max-w-2xl inline-block">
+        <p className="inline-block max-w-2xl font-light text-neutral-400 text-xl leading-relaxed sm:text-2xl md:text-3xl">
           {text}
         </p>
       </motion.div>

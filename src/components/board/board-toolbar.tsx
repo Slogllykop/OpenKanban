@@ -26,11 +26,11 @@ export function BoardToolbar({
   onImport,
 }: BoardToolbarProps) {
   return (
-    <header className="flex shrink-0 items-center justify-between border-b border-border bg-surface-base px-4 py-3 md:px-6">
-      <div className="flex items-center gap-3 min-w-0">
+    <header className="flex shrink-0 items-center justify-between border-border border-b bg-surface-base px-4 py-3 md:px-6">
+      <div className="flex min-w-0 items-center gap-3">
         <Logo size={24} showText={false} />
-        <div className="h-4 w-px bg-border mx-1 hidden sm:block" />
-        <h1 className="truncate text-base font-semibold text-text-primary">
+        <div className="mx-1 hidden h-4 w-px bg-border sm:block" />
+        <h1 className="truncate font-semibold text-base text-text-primary">
           {slug.replaceAll("-", " ")}
         </h1>
 
@@ -41,7 +41,7 @@ export function BoardToolbar({
             style={{ animation: "pulse-dot 2s ease-in-out infinite" }}
           />
           <IconUsers size={12} className="text-text-muted" />
-          <span className="text-[11px] font-medium text-text-secondary">
+          <span className="font-medium text-[11px] text-text-secondary">
             {viewerCount}
           </span>
         </div>

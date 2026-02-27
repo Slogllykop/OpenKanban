@@ -2,23 +2,23 @@ import { Logo } from "@/components/ui/logo";
 
 export function Footer() {
   return (
-    <footer className="relative z-20 bg-black border-t border-neutral-900 py-12 px-6 md:px-12 mx-auto w-full">
-      <div className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
-        <div className="flex flex-col items-center md:items-start gap-3">
+    <footer className="relative z-20 mx-auto w-full border-neutral-900 border-t bg-black px-6 py-12 md:px-12">
+      <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-8 md:flex-row">
+        <div className="flex flex-col items-center gap-3 md:items-start">
           <Logo size={32} />
 
-          <p className="text-neutral-500 text-sm max-w-xs text-center md:text-left">
+          <p className="max-w-xs text-center text-neutral-500 text-sm md:text-left">
             The fastest way to organize your thoughts. No signups, no downloads,
             just flow.
           </p>
         </div>
 
-        <div className="flex items-center gap-6 text-sm text-neutral-400 font-medium tracking-wide">
+        <div className="flex items-center gap-6 font-medium text-neutral-400 text-sm tracking-wide">
           <a
             href="https://github.com/Slogllykop/OpenKanban"
             target="_blank"
             rel="noopener noreferrer"
-            className="hover:text-accent transition-colors flex items-center gap-2"
+            className="flex items-center gap-2 transition-colors hover:text-accent"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -36,16 +36,16 @@ export function Footer() {
             </svg>
             GitHub
           </a>
-          <a href="/terms" className="hover:text-accent transition-colors">
+          <a href="/terms" className="transition-colors hover:text-accent">
             Terms
           </a>
-          <a href="/privacy" className="hover:text-accent transition-colors">
+          <a href="/privacy" className="transition-colors hover:text-accent">
             Privacy
           </a>
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto mt-12 pt-8 border-t border-neutral-900 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-neutral-600">
+      <div className="mx-auto mt-12 flex max-w-6xl flex-col items-center justify-between gap-4 border-neutral-900 border-t pt-8 text-neutral-600 text-xs md:flex-row">
         <p>© {new Date().getFullYear()} OpenKanban. All rights reserved.</p>
         <p>
           Designed & Built by{" "}
@@ -53,7 +53,7 @@ export function Footer() {
             href="https://github.com/Slogllykop"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-neutral-300 hover:text-accent transition-colors"
+            className="text-neutral-300 transition-colors hover:text-accent"
           >
             Slogllykop
           </a>

@@ -6,7 +6,7 @@ export const ScrollProgress = ({
   progress: MotionValue<number>;
 }) => (
   <motion.div
-    className="fixed top-0 left-0 right-0 h-1 md:h-2 bg-accent z-50 origin-left"
+    className="fixed top-0 right-0 left-0 z-50 h-1 origin-left bg-accent md:h-2"
     style={{ scaleX: progress }}
   />
 );

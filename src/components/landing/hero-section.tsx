@@ -23,19 +23,19 @@ export const HeroSection = ({
   }
 
   return (
-    <div className="h-screen sticky top-0 flex flex-col items-center justify-center px-6 overflow-hidden z-10">
+    <div className="sticky top-0 z-10 flex h-screen flex-col items-center justify-center overflow-hidden px-6">
       <motion.div
         style={{ y: heroY, opacity: heroOpacity, scale: heroScale }}
-        className="relative flex flex-col items-center text-center w-full max-w-5xl"
+        className="relative flex w-full max-w-5xl flex-col items-center text-center"
       >
-        <div className="inline-flex items-center gap-2 px-3 py-1 mb-8 rounded-full border border-neutral-800 bg-neutral-900/50 backdrop-blur-sm shadow-xl">
+        <div className="mb-8 inline-flex items-center gap-2 rounded-full border border-neutral-800 bg-neutral-900/50 px-3 py-1 shadow-xl backdrop-blur-sm">
           <Logo size={16} showText={false} />
-          <span className="text-xs font-medium tracking-wide text-neutral-300 uppercase">
+          <span className="font-medium text-neutral-300 text-xs uppercase tracking-wide">
             One of a kind
           </span>
         </div>
 
-        <h1 className="text-6xl sm:text-7xl md:text-9xl font-display font-bold tracking-tighter leading-[0.9] mb-6 overflow-hidden py-2">
+        <h1 className="mb-6 overflow-hidden py-2 font-bold font-display text-6xl leading-[0.9] tracking-tighter sm:text-7xl md:text-9xl">
           <span className="sr-only">
             OpenKanban - Free Real-time Kanban Board.
           </span>
@@ -47,7 +47,7 @@ export const HeroSection = ({
               duration: 0.8,
               ease: [0.16, 1, 0.3, 1],
             }}
-            className="block text-transparent bg-clip-text bg-linear-to-r to-white from-neutral-500 px-2"
+            className="block bg-linear-to-r from-neutral-500 to-white bg-clip-text px-2 text-transparent"
           >
             Think it.
           </motion.span>
@@ -59,7 +59,7 @@ export const HeroSection = ({
               duration: 0.8,
               ease: [0.16, 1, 0.3, 1],
             }}
-            className="block text-transparent bg-clip-text bg-linear-to-r from-white to-neutral-500 pb-2"
+            className="block bg-linear-to-r from-white to-neutral-500 bg-clip-text pb-2 text-transparent"
           >
             Sync it.
           </motion.span>
@@ -69,21 +69,21 @@ export const HeroSection = ({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.4, duration: 1 }}
-          className="text-lg sm:text-xl md:text-2xl text-neutral-400 max-w-2xl font-light tracking-wide mb-12"
+          className="mb-12 max-w-2xl font-light text-lg text-neutral-400 tracking-wide sm:text-xl md:text-2xl"
         >
           Your board's privacy is based on{" "}
-          <span className="text-white font-medium">your own creativity.</span>
+          <span className="font-medium text-white">your own creativity.</span>
           <br /> No signup. No downloads.
         </motion.p>
 
         <form
           onSubmit={handleSubmit}
-          className="flex flex-col sm:flex-row w-full max-w-lg gap-3 relative z-20"
+          className="relative z-20 flex w-full max-w-lg flex-col gap-3 sm:flex-row"
         >
-          <div className="flex-1 relative group">
-            <div className="absolute inset-0 rounded-xl bg-accent blur-md opacity-0 group-focus-within:opacity-20 transition-opacity duration-500"></div>
-            <div className="relative flex items-center gap-0 rounded-xl border border-neutral-800 bg-black/80 backdrop-blur-xl focus-within:border-accent transition-colors h-14 sm:h-auto overflow-hidden">
-              <span className="shrink-0 pl-3 sm:pl-5 text-xs sm:text-sm font-medium text-neutral-500 select-none">
+          <div className="group relative flex-1">
+            <div className="absolute inset-0 rounded-xl bg-accent opacity-0 blur-md transition-opacity duration-500 group-focus-within:opacity-20"></div>
+            <div className="relative flex h-14 items-center gap-0 overflow-hidden rounded-xl border border-neutral-800 bg-black/80 backdrop-blur-xl transition-colors focus-within:border-accent sm:h-auto">
+              <span className="shrink-0 select-none pl-3 font-medium text-neutral-500 text-xs sm:pl-5 sm:text-sm">
                 kanban.isdevs.cv/
               </span>
               <input
@@ -93,7 +93,7 @@ export const HeroSection = ({
                 value={slug}
                 onChange={(e) => setSlug(e.target.value)}
                 placeholder="super-secret-board"
-                className="flex-1 min-w-0 bg-transparent py-4 pr-4 pl-1 text-sm sm:text-base text-white placeholder-neutral-700 outline-none"
+                className="min-w-0 flex-1 bg-transparent py-4 pr-4 pl-1 text-sm text-white placeholder-neutral-700 outline-none sm:text-base"
               />
             </div>
           </div>
@@ -102,7 +102,7 @@ export const HeroSection = ({
             whileTap={{ scale: 0.98 }}
             type="submit"
             disabled={!slug.trim()}
-            className="rounded-xl h-14 sm:h-auto bg-accent px-8 py-4 text-sm font-bold tracking-wide text-black transition-all hover:bg-accent-hover border border-accent hover:border-accent-hover hover:shadow-[0_0_20px_rgba(225,255,0,0.3)] disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-none"
+            className="h-14 rounded-xl border border-accent bg-accent px-8 py-4 font-bold text-black text-sm tracking-wide transition-all hover:border-accent-hover hover:bg-accent-hover hover:shadow-[0_0_20px_rgba(225,255,0,0.3)] disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:scale-100 disabled:hover:shadow-none sm:h-auto"
           >
             Create
           </motion.button>

@@ -37,19 +37,19 @@ export function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // Extract the first path segment as the slug
-  const rawSlug = pathname.slice(1).split("/")[0];
-  if (!rawSlug) return NextResponse.next();
+  // Extract the full path as the slug (to handle multi-segment paths like /test/test)
+  const rawPath = pathname.slice(1);
+  if (!rawPath) return NextResponse.next();
 
-  const sanitized = sanitizeSlug(rawSlug);
+  const sanitized = sanitizeSlug(rawPath);
 
   // If empty after sanitization, redirect to home
   if (!sanitized) {
     return NextResponse.redirect(new URL("/", request.url));
   }
 
-  // If slug changed, redirect to the sanitized version (308 permanent)
-  if (rawSlug !== sanitized) {
+  // If path changed, redirect to the sanitized version (308 permanent)
+  if (rawPath !== sanitized) {
     const newUrl = request.nextUrl.clone();
     newUrl.pathname = `/${sanitized}`;
     return NextResponse.redirect(newUrl, 308);

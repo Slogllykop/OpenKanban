@@ -72,7 +72,7 @@ export function ColumnHeader({
 
   return (
     <div className="flex items-center justify-between gap-2 px-1 pb-3">
-      <div className="flex items-center gap-2 min-w-0">
+      <div className="flex min-w-0 items-center gap-2">
         {isEditing ? (
           <input
             ref={inputRef}
@@ -86,18 +86,18 @@ export function ColumnHeader({
                 setIsEditing(false);
               }
             }}
-            className="w-full rounded-md border border-accent bg-surface-raised px-2 py-1 text-sm font-semibold text-text-primary outline-none"
+            className="w-full rounded-md border border-accent bg-surface-raised px-2 py-1 font-semibold text-sm text-text-primary outline-none"
           />
         ) : (
           <button
             type="button"
             onDoubleClick={() => setIsEditing(true)}
-            className="truncate text-sm font-semibold text-text-primary cursor-pointer"
+            className="cursor-pointer truncate font-semibold text-sm text-text-primary"
           >
             {title}
           </button>
         )}
-        <span className="shrink-0 rounded-full bg-surface-overlay px-2 py-0.5 text-[10px] font-medium text-text-muted">
+        <span className="shrink-0 rounded-full bg-surface-overlay px-2 py-0.5 font-medium text-[10px] text-text-muted">
           {taskCount}
         </span>
       </div>
@@ -107,7 +107,7 @@ export function ColumnHeader({
         <button
           type="button"
           onClick={onToggleCollapse}
-          className="rounded-md p-1 text-text-muted transition-colors hover:bg-surface-overlay hover:text-text-primary cursor-pointer"
+          className="cursor-pointer rounded-md p-1 text-text-muted transition-colors hover:bg-surface-overlay hover:text-text-primary"
           aria-label="Collapse column"
           title="Collapse column"
         >
@@ -119,13 +119,13 @@ export function ColumnHeader({
           <button
             type="button"
             onClick={() => setShowMenu(!showMenu)}
-            className="rounded-md p-1 text-text-muted transition-colors hover:bg-surface-overlay hover:text-text-primary cursor-pointer"
+            className="cursor-pointer rounded-md p-1 text-text-muted transition-colors hover:bg-surface-overlay hover:text-text-primary"
           >
             <IconDots size={16} />
           </button>
           {showMenu && (
             <div
-              className="absolute right-0 top-8 z-20 w-36 rounded-lg border border-border bg-surface-overlay py-1 shadow-xl"
+              className="absolute top-8 right-0 z-20 w-36 rounded-lg border border-border bg-surface-overlay py-1 shadow-xl"
               style={{ animation: "scale-in 100ms ease-out" }}
             >
               <button
@@ -134,7 +134,7 @@ export function ColumnHeader({
                   setIsEditing(true);
                   setShowMenu(false);
                 }}
-                className="w-full px-3 py-1.5 text-left text-xs text-text-secondary hover:bg-surface-raised hover:text-text-primary cursor-pointer"
+                className="w-full cursor-pointer px-3 py-1.5 text-left text-text-secondary text-xs hover:bg-surface-raised hover:text-text-primary"
               >
                 <span className="flex items-center gap-1.5">
                   <IconPencil size={12} />
@@ -148,7 +148,7 @@ export function ColumnHeader({
                     onShiftLeft?.();
                     setShowMenu(false);
                   }}
-                  className="w-full px-3 py-1.5 text-left text-xs text-text-secondary hover:bg-surface-raised hover:text-text-primary cursor-pointer"
+                  className="w-full cursor-pointer px-3 py-1.5 text-left text-text-secondary text-xs hover:bg-surface-raised hover:text-text-primary"
                 >
                   <span className="flex items-center gap-1.5">
                     <IconArrowLeft size={12} />
@@ -163,7 +163,7 @@ export function ColumnHeader({
                     onShiftRight?.();
                     setShowMenu(false);
                   }}
-                  className="w-full px-3 py-1.5 text-left text-xs text-text-secondary hover:bg-surface-raised hover:text-text-primary cursor-pointer"
+                  className="w-full cursor-pointer px-3 py-1.5 text-left text-text-secondary text-xs hover:bg-surface-raised hover:text-text-primary"
                 >
                   <span className="flex items-center gap-1.5">
                     <IconArrowRight size={12} />
@@ -178,7 +178,7 @@ export function ColumnHeader({
                     onDelete();
                     setShowMenu(false);
                   }}
-                  className="w-full px-3 py-1.5 text-left text-xs text-red-400 hover:bg-red-500/10 cursor-pointer"
+                  className="w-full cursor-pointer px-3 py-1.5 text-left text-red-400 text-xs hover:bg-red-500/10"
                 >
                   <span className="flex items-center gap-1.5">
                     <IconTrash size={12} />

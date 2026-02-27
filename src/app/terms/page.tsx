@@ -10,14 +10,14 @@ export const metadata: Metadata = {
 
 export default function TermsPage() {
   return (
-    <div className="min-h-screen bg-black text-white selection:bg-accent selection:text-black font-sans pb-32">
+    <div className="min-h-screen bg-black pb-32 font-sans text-white selection:bg-accent selection:text-black">
       {/* Header */}
-      <header className="border-b border-neutral-900 py-6 px-6">
-        <div className="max-w-4xl mx-auto flex items-center justify-between">
-          <Logo size={24} className="hover:opacity-80 transition-opacity" />
+      <header className="border-neutral-900 border-b px-6 py-6">
+        <div className="mx-auto flex max-w-4xl items-center justify-between">
+          <Logo size={24} className="transition-opacity hover:opacity-80" />
           <Link
             href="/"
-            className="text-sm text-neutral-400 hover:text-white transition-colors"
+            className="text-neutral-400 text-sm transition-colors hover:text-white"
           >
             Back to Home
           </Link>
@@ -25,17 +25,17 @@ export default function TermsPage() {
       </header>
 
       {/* Content */}
-      <main className="max-w-3xl mx-auto px-6 pt-24">
-        <h1 className="text-5xl md:text-6xl font-display font-bold mb-6 tracking-tight">
+      <main className="mx-auto max-w-3xl px-6 pt-24">
+        <h1 className="mb-6 font-bold font-display text-5xl tracking-tight md:text-6xl">
           Terms of Service.
         </h1>
-        <p className="text-accent font-mono text-sm mb-16">
+        <p className="mb-16 font-mono text-accent text-sm">
           Last updated: {new Date().toLocaleDateString()}
         </p>
 
         <div className="space-y-12 text-neutral-300 leading-relaxed">
           <section>
-            <h2 className="text-2xl font-display font-bold text-white mb-4">
+            <h2 className="mb-4 font-bold font-display text-2xl text-white">
               1. Acceptance of Terms
             </h2>
             <p className="mb-4">
@@ -46,7 +46,7 @@ export default function TermsPage() {
           </section>
 
           <section>
-            <h2 className="text-2xl font-display font-bold text-white mb-4">
+            <h2 className="mb-4 font-bold font-display text-2xl text-white">
               2. The Manifesto of "No Friction"
             </h2>
             <p className="mb-4">
@@ -54,7 +54,7 @@ export default function TermsPage() {
               or emails. Access to any board is dictated entirely by knowledge
               of the specific URL slug.
             </p>
-            <ul className="list-disc pl-5 space-y-2 mt-2">
+            <ul className="mt-2 list-disc space-y-2 pl-5">
               <li>
                 <strong>
                   You are entirely responsible for keeping your board URL
@@ -74,7 +74,7 @@ export default function TermsPage() {
           </section>
 
           <section>
-            <h2 className="text-2xl font-display font-bold text-white mb-4">
+            <h2 className="mb-4 font-bold font-display text-2xl text-white">
               3. Ephemeral Nature of Data
             </h2>
             <p className="mb-4">
@@ -87,11 +87,11 @@ export default function TermsPage() {
           </section>
 
           <section>
-            <h2 className="text-2xl font-display font-bold text-white mb-4">
+            <h2 className="mb-4 font-bold font-display text-2xl text-white">
               4. Acceptable Use
             </h2>
             <p className="mb-4">You agree not to use the Service:</p>
-            <ul className="list-disc pl-5 space-y-2 mt-2">
+            <ul className="mt-2 list-disc space-y-2 pl-5">
               <li>
                 In any way that violates any applicable national or
                 international law or regulation.
@@ -108,7 +108,7 @@ export default function TermsPage() {
           </section>
 
           <section>
-            <h2 className="text-2xl font-display font-bold text-white mb-4">
+            <h2 className="mb-4 font-bold font-display text-2xl text-white">
               5. Disclaimer of Warranties
             </h2>
             <p className="mb-4">

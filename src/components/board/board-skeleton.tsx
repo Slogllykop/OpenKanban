@@ -2,7 +2,7 @@ export function BoardSkeleton() {
   return (
     <div className="flex h-dvh flex-col bg-surface-base">
       {/* Toolbar skeleton */}
-      <header className="flex shrink-0 items-center justify-between border-b border-border px-4 py-3 md:px-6">
+      <header className="flex shrink-0 items-center justify-between border-border border-b px-4 py-3 md:px-6">
         <div className="flex items-center gap-3">
           <div className="h-5 w-28 animate-pulse rounded-md bg-surface-overlay" />
           <div className="h-6 w-14 animate-pulse rounded-full bg-surface-overlay" />

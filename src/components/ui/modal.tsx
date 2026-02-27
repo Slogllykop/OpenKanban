@@ -53,7 +53,7 @@ export function Modal({ open, onClose, title, children }: ModalProps) {
         type="button"
         aria-label="Close modal"
         onClick={handleOverlayClick}
-        className="absolute inset-0 bg-black/60 cursor-default"
+        className="absolute inset-0 cursor-default bg-black/60"
       />
 
       {/* Modal content */}
@@ -63,13 +63,13 @@ export function Modal({ open, onClose, title, children }: ModalProps) {
       >
         {title && (
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-base font-semibold text-text-primary">
+            <h2 className="font-semibold text-base text-text-primary">
               {title}
             </h2>
             <button
               type="button"
               onClick={onClose}
-              className="rounded-md p-1 text-text-muted transition-colors hover:bg-surface-raised hover:text-text-primary cursor-pointer"
+              className="cursor-pointer rounded-md p-1 text-text-muted transition-colors hover:bg-surface-raised hover:text-text-primary"
             >
               <IconX size={18} />
             </button>
