@@ -1,3 +1,4 @@
+/** biome-ignore-all lint/complexity/noImportantStyles: required for mobile devices */
 @import "tailwindcss";
 
 /* ----------------------------------------------------------------
@@ -138,6 +139,25 @@ button {
   }
   100% {
     background-position: 200% 0;
+  }
+}
+
+/* ----------------------------------------------------------------
+   Sonner Toast Overrides (Mobile)
+   ---------------------------------------------------------------- */
+
+/* On mobile, move toasts to top to avoid keyboard overlap */
+@media (max-width: 640px) {
+  [data-sonner-toaster] {
+    --offset: 12px !important;
+    left: var(--offset) !important;
+    right: var(--offset) !important;
+    bottom: var(--offset) !important;
+    width: calc(100% - var(--offset) * 2) !important;
+  }
+
+  [data-sonner-toast] {
+    width: 100% !important;
   }
 }
 

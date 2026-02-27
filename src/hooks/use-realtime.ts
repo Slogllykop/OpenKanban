@@ -2,6 +2,7 @@
 
 import type { RealtimeChannel } from "@supabase/supabase-js";
 import { useCallback, useEffect, useRef } from "react";
+import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
 
 interface UseRealtimeOptions {
@@ -25,6 +26,9 @@ export function useRealtime({ slug, onSync }: UseRealtimeOptions) {
   const onSyncRef = useRef(onSync);
   onSyncRef.current = onSync;
 
+  /** Track if we've already shown the error toast to avoid spam */
+  const hasShownErrorRef = useRef(false);
+
   useEffect(() => {
     const supabase = createClient();
     const ch = supabase.channel(`board-sync:${slug}`);
@@ -33,7 +37,21 @@ export function useRealtime({ slug, onSync }: UseRealtimeOptions) {
       onSyncRef.current();
     });
 
-    ch.subscribe();
+    ch.subscribe((status) => {
+      if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
+        if (!hasShownErrorRef.current) {
+          hasShownErrorRef.current = true;
+          toast.error("Realtime sync lost", {
+            description:
+              "Live updates from other users may be delayed. Refresh to reconnect.",
+          });
+        }
+      }
+      if (status === "SUBSCRIBED") {
+        hasShownErrorRef.current = false;
+      }
+    });
+
     channelRef.current = ch;
 
     return () => {
@@ -44,11 +62,16 @@ export function useRealtime({ slug, onSync }: UseRealtimeOptions) {
 
   /** Tell every other viewer to refetch */
   const broadcastSync = useCallback(() => {
-    channelRef.current?.send({
-      type: "broadcast",
-      event: "sync",
-      payload: {},
-    });
+    try {
+      channelRef.current?.send({
+        type: "broadcast",
+        event: "sync",
+        payload: {},
+      });
+    } catch {
+      // Broadcast failure is non-critical - the local mutation already succeeded.
+      // Other clients will eventually sync on their next page load.
+    }
   }, []);
 
   return { broadcastSync };

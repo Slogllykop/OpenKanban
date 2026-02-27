@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { Bricolage_Grotesque, Inter } from "next/font/google";
+import { Toaster } from "sonner";
+import { OfflineBanner } from "@/components/ui/offline-banner";
 import "./globals.css";
 
 const inter = Inter({
@@ -94,7 +96,21 @@ export default function RootLayout({
             }),
           }}
         />
+        <OfflineBanner />
         {children}
+        <Toaster
+          theme="dark"
+          position="bottom-right"
+          toastOptions={{
+            style: {
+              background: "#111",
+              border: "1px solid #1a1a1a",
+              color: "#fff",
+            },
+          }}
+          visibleToasts={5}
+          richColors
+        />
       </body>
     </html>
   );

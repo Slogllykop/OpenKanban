@@ -43,7 +43,7 @@ export function TaskCard({ task, index, onEdit, onDelete }: TaskCardProps) {
               : "border-border hover:border-border-hover"
           }`}
         >
-          {/* Drag handle — visible on hover or keyboard focus */}
+          {/* Drag handle - visible on hover or keyboard focus */}
           <div
             {...provided.dragHandleProps}
             role="button"

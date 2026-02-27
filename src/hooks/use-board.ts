@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useRef, useState } from "react";
+import { toast } from "sonner";
 import {
   createBoard,
   createColumn,
@@ -59,6 +60,13 @@ function getInitialLocalColumn(): ColumnWithTasks {
     created_at: "2026-01-01T00:00:00.000Z",
     tasks: [],
   };
+}
+
+/** Show a standardized error toast for failed mutations */
+function showMutationError(action: string) {
+  toast.error(`Failed to ${action}`, {
+    description: "Your changes have been reverted. Please try again.",
+  });
 }
 
 export function useBoard({
@@ -137,6 +145,7 @@ export function useBoard({
         return;
       }
 
+      const snapshot = columns;
       setIsLoading(true);
       try {
         const currentBoard = boardRef.current;
@@ -150,6 +159,9 @@ export function useBoard({
         });
         setColumns((prev) => [...prev, { ...newCol, tasks: [] }]);
         onMutationRef.current?.();
+      } catch {
+        setColumns(snapshot);
+        showMutationError("add column");
       } finally {
         setIsLoading(false);
       }
@@ -159,35 +171,49 @@ export function useBoard({
 
   const renameColumn = useCallback(
     async (columnId: string, title: string) => {
+      const snapshot = columns;
       setColumns((prev) =>
         prev.map((col) => (col.id === columnId ? { ...col, title } : col)),
       );
       if (isPersistedRef.current && !columnId.startsWith("local-")) {
-        await updateColumn(supabase, { id: columnId, title });
-        onMutationRef.current?.();
+        try {
+          await updateColumn(supabase, { id: columnId, title });
+          onMutationRef.current?.();
+        } catch {
+          setColumns(snapshot);
+          showMutationError("rename column");
+        }
       }
     },
-    [supabase],
+    [supabase, columns],
   );
 
   const toggleColumnCollapse = useCallback(
     async (columnId: string, is_collapsed: boolean) => {
+      const snapshot = columns;
       setColumns((prev) =>
         prev.map((col) =>
           col.id === columnId ? { ...col, is_collapsed } : col,
         ),
       );
       if (isPersistedRef.current && !columnId.startsWith("local-")) {
-        await updateColumn(supabase, { id: columnId, is_collapsed });
-        onMutationRef.current?.();
+        try {
+          await updateColumn(supabase, { id: columnId, is_collapsed });
+          onMutationRef.current?.();
+        } catch {
+          setColumns(snapshot);
+          showMutationError("toggle column");
+        }
       }
     },
-    [supabase],
+    [supabase, columns],
   );
 
   const removeColumn = useCallback(
     async (columnId: string) => {
       if (columns.length <= 1) return; // Keep at least 1 column
+
+      const snapshot = columns;
 
       const filtered = columns.filter((col) => col.id !== columnId);
       const newCols = filtered.map((col, i) => ({ ...col, position: i }));
@@ -208,13 +234,12 @@ export function useBoard({
         try {
           await dbDeleteColumn(supabase, columnId);
           if (colUpdates.length > 0) {
-            await updateColumnPositions(supabase, colUpdates).catch(
-              console.error,
-            );
+            await updateColumnPositions(supabase, colUpdates);
           }
           onMutationRef.current?.();
-        } catch (error) {
-          console.error(`[removeColumn] dbDeleteColumn failed!`, error);
+        } catch {
+          setColumns(snapshot);
+          showMutationError("delete column");
         }
       }
     },
@@ -227,14 +252,16 @@ export function useBoard({
   const addTask = useCallback(
     async (columnId: string, title: string, priority: Priority = "medium") => {
       setIsLoading(true);
+      const snapshot = columns;
       try {
         if (!isPersistedRef.current) {
           // First task triggers full persistence
-          const snapshot = columns;
-          const { board: newBoard, idMap } = await persistBoard(snapshot);
+          const currentSnapshot = columns;
+          const { board: newBoard, idMap } =
+            await persistBoard(currentSnapshot);
 
           const dbColumnId = idMap.get(columnId) ?? columnId;
-          const targetCol = snapshot.find((c) => c.id === columnId);
+          const targetCol = currentSnapshot.find((c) => c.id === columnId);
           const position = targetCol ? targetCol.tasks.length : 0;
 
           const newTask = await createTask(supabase, {
@@ -302,6 +329,9 @@ export function useBoard({
           ),
         );
         onMutationRef.current?.();
+      } catch {
+        setColumns(snapshot);
+        showMutationError("add task");
       } finally {
         setIsLoading(false);
       }
@@ -318,6 +348,7 @@ export function useBoard({
         priority?: Priority;
       },
     ) => {
+      const snapshot = columns;
       setColumns((prev) =>
         prev.map((col) => ({
           ...col,
@@ -326,14 +357,20 @@ export function useBoard({
           ),
         })),
       );
-      await updateTask(supabase, { id: taskId, ...updates });
-      onMutationRef.current?.();
+      try {
+        await updateTask(supabase, { id: taskId, ...updates });
+        onMutationRef.current?.();
+      } catch {
+        setColumns(snapshot);
+        showMutationError("update task");
+      }
     },
-    [supabase],
+    [supabase, columns],
   );
 
   const removeTask = useCallback(
     async (taskId: string) => {
+      const snapshot = columns;
       setColumns((prev) =>
         prev.map((col) => ({
           ...col,
@@ -342,10 +379,15 @@ export function useBoard({
             .map((t, i) => ({ ...t, position: i })),
         })),
       );
-      await dbDeleteTask(supabase, taskId);
-      onMutationRef.current?.();
+      try {
+        await dbDeleteTask(supabase, taskId);
+        onMutationRef.current?.();
+      } catch {
+        setColumns(snapshot);
+        showMutationError("delete task");
+      }
     },
-    [supabase],
+    [supabase, columns],
   );
 
   // -----------------------------------------------------------------------
@@ -358,6 +400,8 @@ export function useBoard({
       sourceIndex: number,
       destIndex: number,
     ) => {
+      const snapshot = columns;
+
       const newCols = columns.map((col) => ({
         ...col,
         tasks: [...col.tasks],
@@ -397,8 +441,13 @@ export function useBoard({
       }
 
       if (isPersistedRef.current && tasksToUpdate.length > 0) {
-        await updateTaskPositions(supabase, tasksToUpdate).catch(console.error);
-        onMutationRef.current?.();
+        try {
+          await updateTaskPositions(supabase, tasksToUpdate);
+          onMutationRef.current?.();
+        } catch {
+          setColumns(snapshot);
+          showMutationError("move task");
+        }
       }
     },
     [supabase, columns],
@@ -406,6 +455,8 @@ export function useBoard({
 
   const moveColumn = useCallback(
     async (sourceIndex: number, destIndex: number) => {
+      const snapshot = columns;
+
       const newCols = [...columns];
       const [moved] = newCols.splice(sourceIndex, 1);
       if (!moved) return;
@@ -424,8 +475,13 @@ export function useBoard({
       setColumns(result);
 
       if (isPersistedRef.current && colUpdates.length > 0) {
-        await updateColumnPositions(supabase, colUpdates).catch(console.error);
-        onMutationRef.current?.();
+        try {
+          await updateColumnPositions(supabase, colUpdates);
+          onMutationRef.current?.();
+        } catch {
+          setColumns(snapshot);
+          showMutationError("move column");
+        }
       }
     },
     [supabase, columns],
@@ -436,7 +492,12 @@ export function useBoard({
   // -----------------------------------------------------------------------
   const removeBoard = useCallback(async () => {
     if (boardRef.current && isPersistedRef.current) {
-      await dbDeleteBoard(supabase, boardRef.current.id);
+      try {
+        await dbDeleteBoard(supabase, boardRef.current.id);
+      } catch {
+        showMutationError("delete board");
+        return;
+      }
     }
     boardRef.current = null;
     isPersistedRef.current = false;

@@ -24,13 +24,16 @@ function sanitizeSlug(raw: string): string {
     });
   }
 
-  return decoded
-    .toLowerCase()
-    .replace(/[\s_]/g, "-")
-    .replace(/[?!@#$%^&*()+=_\[\]{};':",.<>\/]/g, "-")
-    .replace(/[^a-z0-9-]/g, "-")
-    .replace(/-{2,}/g, "-")
-    .replace(/^-+|-+$/g, "");
+  return (
+    decoded
+      .toLowerCase()
+      .replace(/[\s_]/g, "-")
+      // biome-ignore lint/complexity/noUselessEscapeInRegex: Important for brakcets
+      .replace(/[?!@#$%^&*()+=_\[\]{};':",.<>\/]/g, "-")
+      .replace(/[^a-z0-9-]/g, "-")
+      .replace(/-{2,}/g, "-")
+      .replace(/^-+|-+$/g, "")
+  );
 }
 
 /** Paths to skip - static assets, API routes, Next internals */

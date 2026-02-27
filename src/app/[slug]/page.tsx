@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Board } from "@/components/board/board";
+import { Unavailable } from "@/components/board/Unavailable";
 import { getFullBoard } from "@/lib/db";
 import { createClient } from "@/lib/supabase/server";
 
@@ -25,7 +26,16 @@ export async function generateMetadata({
 export default async function BoardPage({ params }: BoardPageProps) {
   const { slug } = await params;
   const supabase = await createClient();
-  const boardData = await getFullBoard(supabase, slug);
+
+  let boardData = null;
+
+  try {
+    boardData = await getFullBoard(supabase, slug);
+  } catch (error) {
+    console.error(`[BoardPage] Failed to fetch board data for ${slug}:`, error);
+
+    return <Unavailable slug={slug} />;
+  }
 
   return (
     <Board
