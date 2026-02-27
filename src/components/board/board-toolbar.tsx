@@ -8,6 +8,8 @@ import {
 } from "@tabler/icons-react";
 import { Button } from "@/components/ui/button";
 
+import { Logo } from "@/components/ui/logo";
+
 interface BoardToolbarProps {
   slug: string;
   viewerCount: number;
@@ -26,6 +28,8 @@ export function BoardToolbar({
   return (
     <header className="flex shrink-0 items-center justify-between border-b border-border bg-surface-base px-4 py-3 md:px-6">
       <div className="flex items-center gap-3 min-w-0">
+        <Logo size={24} showText={false} />
+        <div className="h-4 w-px bg-border mx-1 hidden sm:block" />
         <h1 className="truncate text-base font-semibold text-text-primary">
           {slug.replaceAll("-", " ")}
         </h1>

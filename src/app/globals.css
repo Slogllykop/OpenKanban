@@ -1,14 +1,14 @@
 @import "tailwindcss";
 
 /* ----------------------------------------------------------------
-   Design Tokens - Dark mode only, Black/White/Padparadscha
+   Design Tokens - Dark mode only, Black/White/Yellow
    ---------------------------------------------------------------- */
 
 @theme inline {
-  /* Accent - Padparadscha (warm salmon-coral) */
-  --color-accent: #e8967d;
-  --color-accent-hover: #d4816a;
-  --color-accent-muted: #e8967d33;
+  /* Accent - Electric Yellow */
+  --color-accent: #e1ff00;
+  --color-accent-hover: #cce600;
+  --color-accent-muted: #e1ff0033;
 
   /* Surfaces */
   --color-surface-base: #000000;
@@ -18,7 +18,7 @@
   /* Borders */
   --color-border: #1a1a1a;
   --color-border-hover: #2a2a2a;
-  --color-border-accent: #e8967d44;
+  --color-border-accent: #e1ff0044;
 
   /* Text */
   --color-text-primary: #ffffff;
@@ -33,7 +33,10 @@
   --color-priority-urgent: #ff3b3b;
 
   /* Fonts */
-  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-inter), "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display:
+    var(--font-bricolage), "Bricolage Grotesque", ui-sans-serif, system-ui,
+    sans-serif;
 }
 
 /* ----------------------------------------------------------------
@@ -50,6 +53,10 @@ body {
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+button {
+  cursor: pointer;
 }
 
 /* ----------------------------------------------------------------
