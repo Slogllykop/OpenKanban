@@ -63,7 +63,7 @@ export function Column({
   }
 
   return (
-    <div className="flex h-full w-[280px] min-w-[280px] shrink-0 flex-col rounded-xl bg-surface-overlay/50 p-2">
+    <div className="flex h-full w-[280px] min-w-[280px] shrink-0 flex-col rounded-xl bg-surface-overlay/69 p-2">
       <ColumnHeader
         title={column.title}
         taskCount={column.tasks.length}
