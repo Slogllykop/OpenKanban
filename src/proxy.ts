@@ -2,17 +2,33 @@ import { type NextRequest, NextResponse } from "next/server";
 
 /**
  * Sanitize a URL slug:
- * 1. Lowercase
- * 2. Replace spaces and underscores with dashes
- * 3. Replace all illegal characters (not a-z or -) with dashes
- * 4. Collapse consecutive dashes
- * 5. Trim leading/trailing dashes
+ * 1. Decode URI components
+ * 2. Lowercase
+ * 3. Replace spaces and underscores with dashes
+ * 4. Replace illegal characters (? ! @ etc.) with dashes
+ * 5. Collapse consecutive dashes
+ * 6. Trim leading/trailing dashes
  */
 function sanitizeSlug(raw: string): string {
-  return raw
+  let decoded = raw;
+  try {
+    decoded = decodeURIComponent(raw);
+  } catch {
+    // If full decode fails, safely decode only the valid URI components piece by piece
+    decoded = raw.replace(/(%[0-9A-Fa-f]{2})+/g, (match) => {
+      try {
+        return decodeURIComponent(match);
+      } catch {
+        return match;
+      }
+    });
+  }
+
+  return decoded
     .toLowerCase()
     .replace(/[\s_]/g, "-")
-    .replace(/[^a-z-]/g, "-")
+    .replace(/[?!@#$%^&*()+=_\[\]{};':",.<>\/]/g, "-")
+    .replace(/[^a-z0-9-]/g, "-")
     .replace(/-{2,}/g, "-")
     .replace(/^-+|-+$/g, "");
 }
@@ -27,7 +43,7 @@ const IGNORED_PREFIXES = [
 ];
 
 export function proxy(request: NextRequest) {
-  const { pathname } = request.nextUrl;
+  const { pathname, search, hash } = request.nextUrl;
 
   // Skip root and ignored paths
   if (
@@ -37,11 +53,11 @@ export function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // Extract the full path as the slug (to handle multi-segment paths like /test/test)
-  const rawPath = pathname.slice(1);
-  if (!rawPath) return NextResponse.next();
+  // Extract the full path including search params and hash to correctly sanitize ? and #
+  const fullPath = `${pathname}${search}${hash}`.slice(1);
+  if (!fullPath) return NextResponse.next();
 
-  const sanitized = sanitizeSlug(rawPath);
+  const sanitized = sanitizeSlug(fullPath);
 
   // If empty after sanitization, redirect to home
   if (!sanitized) {
@@ -49,9 +65,11 @@ export function proxy(request: NextRequest) {
   }
 
   // If path changed, redirect to the sanitized version (308 permanent)
-  if (rawPath !== sanitized) {
+  if (fullPath !== sanitized) {
     const newUrl = request.nextUrl.clone();
     newUrl.pathname = `/${sanitized}`;
+    newUrl.search = "";
+    newUrl.hash = "";
     return NextResponse.redirect(newUrl, 308);
   }
 
