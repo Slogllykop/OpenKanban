@@ -15,7 +15,7 @@ const bricolage = Bricolage_Grotesque({
 });
 
 export const metadata: Metadata = {
-  metadataBase: "https://kanban.isdevs.cv",
+  metadataBase: new URL("https://kanban.isdevs.cv"),
   title: {
     default: "OpenKanban - Your Board, Your URL",
     template: "%s | OpenKanban",
