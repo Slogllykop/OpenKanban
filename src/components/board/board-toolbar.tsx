@@ -25,26 +25,38 @@ export function BoardToolbar({
   onExport,
   onImport,
 }: BoardToolbarProps) {
+  const formattedTitle = slug.replaceAll("-", " ");
+  const titleWords = formattedTitle.split(" ");
+  const displayTitle =
+    titleWords.length > 5
+      ? `${titleWords.slice(0, 5).join(" ")}...`
+      : formattedTitle;
+
   return (
     <header className="flex shrink-0 items-center justify-between border-border border-b bg-surface-base px-4 py-3 md:px-6">
       <div className="flex min-w-0 items-center gap-3">
         <Logo size={24} showText={false} />
         <div className="mx-1 hidden h-4 w-px bg-border sm:block" />
-        <h1 className="truncate font-semibold text-base text-text-primary">
-          {slug.replaceAll("-", " ")}
+        <h1
+          className="truncate font-semibold text-base text-text-primary"
+          title={formattedTitle}
+        >
+          {displayTitle}
         </h1>
 
         {/* Live viewer count */}
-        <div className="flex items-center gap-1.5 rounded-full bg-surface-overlay px-2.5 py-1">
-          <span
-            className="h-1.5 w-1.5 rounded-full bg-green-500"
-            style={{ animation: "pulse-dot 2s ease-in-out infinite" }}
-          />
-          <IconUsers size={12} className="text-text-muted" />
-          <span className="font-medium text-[11px] text-text-secondary">
-            {viewerCount}
-          </span>
-        </div>
+        {viewerCount > 1 && (
+          <div className="flex items-center gap-1.5 rounded-full bg-surface-overlay px-2.5 py-1">
+            <span
+              className="h-1.5 w-1.5 rounded-full bg-green-500"
+              style={{ animation: "pulse-dot 2s ease-in-out infinite" }}
+            />
+            <IconUsers size={12} className="text-text-muted" />
+            <span className="font-medium text-[11px] text-text-secondary">
+              {viewerCount}
+            </span>
+          </div>
+        )}
       </div>
 
       <div className="flex items-center gap-1">

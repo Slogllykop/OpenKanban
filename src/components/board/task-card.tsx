@@ -36,14 +36,13 @@ export function TaskCard({ task, index, onEdit, onDelete }: TaskCardProps) {
         <div
           ref={provided.innerRef}
           {...provided.draggableProps}
-          onClick={() => onEdit(task)}
-          className={`group relative cursor-pointer rounded-lg border bg-surface-raised p-3 outline-none transition-all duration-150 has-focus-visible:ring-1 has-focus-visible:ring-accent ${
+          className={`group relative flex cursor-pointer overflow-hidden rounded-lg border bg-surface-raised outline-none transition-all duration-150 has-focus-visible:ring-1 has-focus-visible:ring-accent ${
             snapshot.isDragging
               ? "scale-[1.02] border-accent/40 shadow-accent/5 shadow-lg"
               : "border-border hover:border-border-hover"
           }`}
         >
-          {/* Drag handle - visible on hover or keyboard focus */}
+          {/* Drag handle - distinctly separated on the left */}
           <div
             {...provided.dragHandleProps}
             role="button"
@@ -55,54 +54,57 @@ export function TaskCard({ task, index, onEdit, onDelete }: TaskCardProps) {
                 e.preventDefault();
                 onEdit(task);
               }
-              //   else if (provided.dragHandleProps?.onKeyDown) {
-              //     provided.dragHandleProps.onKeyDown(e);
-              //   }
             }}
-            className="absolute top-3 left-1.5 text-text-muted opacity-0 transition-opacity focus:opacity-100 focus:outline-none group-hover:opacity-100"
+            className="flex w-10 shrink-0 cursor-grab items-center justify-center border-border border-r bg-surface-base/40 text-text-muted transition-colors hover:bg-surface-hover hover:text-text-secondary active:cursor-grabbing sm:w-8"
           >
-            <IconGripVertical size={14} />
+            <IconGripVertical size={16} />
           </div>
 
-          {/* Content */}
-          <div className="pl-4">
-            <p className="font-medium text-sm text-text-primary leading-snug">
-              {task.title}
-            </p>
-            {task.description && (
-              <p className="mt-1 line-clamp-2 text-text-muted text-xs leading-relaxed">
-                {task.description}
+          {/* Content Area */}
+          <div
+            className="flex min-w-0 flex-1 flex-col p-3 pl-3.5"
+            onClick={() => onEdit(task)}
+          >
+            {/* Header / Text */}
+            <div className="pr-6">
+              <p className="wrap-break-word font-medium text-sm text-text-primary leading-snug">
+                {task.title}
               </p>
-            )}
-          </div>
+              {task.description && (
+                <p className="mt-1 line-clamp-2 text-text-muted text-xs leading-relaxed">
+                  {task.description}
+                </p>
+              )}
+            </div>
 
-          {/* Footer: priority + date */}
-          <div className="mt-2.5 flex items-center justify-between pl-4">
-            <span
-              className={`inline-flex rounded-full px-2 py-0.5 font-semibold text-[10px] uppercase tracking-wider ${priority.className}`}
+            {/* Footer: priority + date */}
+            <div className="mt-2.5 flex items-center justify-between">
+              <span
+                className={`inline-flex rounded-full px-2 py-0.5 font-semibold text-[10px] uppercase tracking-wider ${priority.className}`}
+              >
+                {priority.label}
+              </span>
+              <span className="text-[10px] text-text-muted">
+                {new Date(task.created_at).toLocaleDateString("en-US", {
+                  month: "short",
+                  day: "numeric",
+                })}
+              </span>
+            </div>
+
+            {/* Delete button - visible on hover */}
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onDelete(task.id);
+              }}
+              onKeyDown={(e) => e.stopPropagation()}
+              className="absolute top-1.5 right-1.5 cursor-pointer rounded-md p-1.5 text-text-muted opacity-0 transition-colors hover:bg-red-500/10 hover:text-red-400 focus:opacity-100 focus:outline-none focus-visible:ring-1 focus-visible:ring-accent group-hover:opacity-100"
             >
-              {priority.label}
-            </span>
-            <span className="text-[10px] text-text-muted">
-              {new Date(task.created_at).toLocaleDateString("en-US", {
-                month: "short",
-                day: "numeric",
-              })}
-            </span>
+              <IconTrash size={14} />
+            </button>
           </div>
-
-          {/* Delete button - visible on hover */}
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              onDelete(task.id);
-            }}
-            onKeyDown={(e) => e.stopPropagation()}
-            className="absolute top-2 right-2 cursor-pointer rounded-md p-1 text-text-muted opacity-0 transition-colors hover:bg-red-500/10 hover:text-red-400 focus:opacity-100 focus:outline-none focus-visible:ring-1 focus-visible:ring-accent group-hover:opacity-100"
-          >
-            <IconTrash size={14} />
-          </button>
         </div>
       )}
     </Draggable>

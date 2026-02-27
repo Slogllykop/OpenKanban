@@ -1,7 +1,22 @@
 "use client";
 
+import {
+  IconAlignLeft,
+  IconCalendar,
+  IconCheck,
+  IconChevronDown,
+  IconFlag,
+  IconTrash,
+  IconTypography,
+} from "@tabler/icons-react";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Modal } from "@/components/ui/modal";
 import type { Priority, Task } from "@/lib/types";
 
@@ -64,14 +79,14 @@ export function TaskModal({
 
   return (
     <Modal open={open} onClose={onClose} title="Edit Task">
-      <div className="flex flex-col gap-4">
-        {/* Title */}
-        <div className="flex flex-col gap-1.5">
+      <div className="flex flex-col gap-6">
+        {/* Title Input */}
+        <div className="flex flex-col gap-2">
           <label
             htmlFor="task-title"
-            className="font-medium text-text-secondary text-xs"
+            className="flex items-center gap-1.5 font-semibold text-[0.75rem] text-text-muted uppercase tracking-wider"
           >
-            Title
+            <IconTypography size={14} /> Task Title
           </label>
           <input
             id="task-title"
@@ -80,70 +95,99 @@ export function TaskModal({
             onKeyDown={(e) => {
               if (e.key === "Enter") handleSave();
             }}
-            className="w-full rounded-md border border-border bg-surface-raised px-3 py-2 text-sm text-text-primary outline-none transition-colors focus:border-accent"
+            placeholder="What needs to be done?"
+            className="w-full rounded-md border border-border bg-transparent px-3 py-2.5 font-medium text-base text-text-primary outline-none transition-colors placeholder:text-text-muted/50 hover:border-text-muted focus:border-accent focus:ring-1 focus:ring-accent"
           />
         </div>
 
-        {/* Description */}
-        <div className="flex flex-col gap-1.5">
+        {/* Description Input */}
+        <div className="flex flex-col gap-2">
           <label
             htmlFor="task-desc"
-            className="font-medium text-text-secondary text-xs"
+            className="flex items-center gap-1.5 font-semibold text-[0.75rem] text-text-muted uppercase tracking-wider"
           >
-            Description
-            <span className="ml-1 text-text-muted">(optional)</span>
+            <IconAlignLeft size={14} /> Description{" "}
+            <span className="font-normal normal-case opacity-50">
+              (optional)
+            </span>
           </label>
           <textarea
             id="task-desc"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            rows={3}
-            className="w-full resize-none rounded-md border border-border bg-surface-raised px-3 py-2 text-sm text-text-primary outline-none transition-colors focus:border-accent"
-            placeholder="Add a description..."
+            rows={4}
+            placeholder="Add more details about this task..."
+            className="w-full resize-none rounded-md border border-border bg-transparent px-3 py-2.5 text-sm text-text-primary outline-none transition-colors placeholder:text-text-muted/50 hover:border-text-muted focus:border-accent focus:ring-1 focus:ring-accent"
           />
         </div>
 
-        {/* Priority */}
-        <div className="flex flex-col gap-1.5">
-          <label
-            htmlFor="task-priority"
-            className="font-medium text-text-secondary text-xs"
-          >
-            Priority
-          </label>
-          <select
-            id="task-priority"
-            value={priority}
-            onChange={(e) => setPriority(e.target.value as Priority)}
-            className="w-full cursor-pointer rounded-md border border-border bg-surface-raised px-3 py-2 text-sm text-text-primary outline-none transition-colors focus:border-accent"
-          >
-            {priorityOptions.map((opt) => (
-              <option key={opt.value} value={opt.value}>
-                {opt.label}
-              </option>
-            ))}
-          </select>
+        {/* Metadata section */}
+        <div className="grid grid-cols-2 gap-4">
+          {/* Priority */}
+          <div className="flex flex-col gap-2">
+            <span className="flex items-center gap-1.5 font-semibold text-[0.75rem] text-text-muted uppercase tracking-wider">
+              <IconFlag size={14} /> Priority
+            </span>
+            <DropdownMenu>
+              <DropdownMenuTrigger className="flex h-[42px] w-full items-center justify-between rounded-md border border-border bg-transparent px-3 py-2 font-medium text-sm text-text-primary outline-none transition-colors hover:border-text-muted focus:border-accent data-[status=open]:border-accent">
+                <span>
+                  {priorityOptions.find((o) => o.value === priority)?.label}
+                </span>
+                <IconChevronDown size={16} className="text-text-muted" />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                align="start"
+                className="w-(--anchor-width) border border-border bg-surface-raised"
+              >
+                {priorityOptions.map((opt) => (
+                  <DropdownMenuItem
+                    key={opt.value}
+                    onClick={() => setPriority(opt.value)}
+                    className="flex cursor-pointer items-center justify-between"
+                  >
+                    {opt.label}
+                    {priority === opt.value && <IconCheck size={14} />}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+
+          {/* Created Status */}
+          <div className="flex flex-col gap-2">
+            <span className="flex items-center gap-1.5 font-semibold text-[0.75rem] text-text-muted uppercase tracking-wider">
+              <IconCalendar size={14} /> Created
+            </span>
+            <div className="flex h-[42px] items-center rounded-md border border-transparent bg-transparent px-3 py-2 font-medium text-sm text-text-secondary">
+              {task
+                ? new Date(task.created_at).toLocaleDateString("en-US", {
+                    month: "short",
+                    day: "numeric",
+                    year: "numeric",
+                  })
+                : "—"}
+            </div>
+          </div>
         </div>
 
-        {/* Created date (read-only) */}
-        {task && (
-          <p className="text-text-muted text-xs">
-            Created{" "}
-            {new Date(task.created_at).toLocaleDateString("en-US", {
-              month: "long",
-              day: "numeric",
-              year: "numeric",
-            })}
-          </p>
-        )}
-
-        {/* Actions */}
-        <div className="flex items-center justify-between pt-2">
-          <Button variant="danger" size="sm" onClick={handleDelete}>
-            Delete task
+        {/* Footer actions */}
+        <div className="mt-4 flex items-center justify-between border-border border-t pt-5">
+          <Button
+            variant="danger"
+            size="sm"
+            onClick={handleDelete}
+            className="hover:bg-red-500/10"
+          >
+            <IconTrash size={16} className="mr-1.5" />
+            Delete Task
           </Button>
-          <div className="flex items-center gap-2">
-            <Button variant="ghost" size="sm" onClick={onClose}>
+          <div className="flex items-center gap-3">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onClose}
+              className="text-text-muted hover:bg-black/10 hover:text-text-primary dark:hover:bg-white/10"
+            >
               Cancel
             </Button>
             <Button
@@ -151,8 +195,9 @@ export function TaskModal({
               size="sm"
               onClick={handleSave}
               disabled={!title.trim()}
+              className="px-5 font-semibold shadow-sm"
             >
-              Save
+              Save Changes
             </Button>
           </div>
         </div>
