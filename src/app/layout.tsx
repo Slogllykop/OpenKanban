@@ -15,10 +15,44 @@ const bricolage = Bricolage_Grotesque({
 });
 
 export const metadata: Metadata = {
-  title: "OpenKanban - Your Board, Your URL",
+  metadataBase: "https://kanban.isdevs.cv",
+  title: {
+    default: "OpenKanban - Your Board, Your URL",
+    template: "%s | OpenKanban",
+  },
   description:
-    "A sleek, real-time Kanban board with no signup required. Just type a URL and start organizing.",
-  keywords: ["kanban", "project management", "realtime", "board"],
+    "A sleek, real-time Kanban board with no signup required. Just type a URL and start organizing instantly across devices.",
+  alternates: {
+    canonical: "/",
+  },
+  keywords: [
+    "kanban",
+    "project management",
+    "realtime",
+    "board",
+    "no signup kanban",
+    "ephemeral boards",
+    "productivity utility",
+    "open source kanban",
+  ],
+  openGraph: {
+    title: "OpenKanban - Realtime Kanban Boards",
+    description:
+      "Instantly create realtime Kanban boards with zero signup. If you know the URL, you have the keys.",
+    url: "/",
+    siteName: "OpenKanban",
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "OpenKanban - Realtime Boards",
+    description: "Instantly create realtime Kanban boards with zero signup.",
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
 };
 
 export default function RootLayout({
@@ -31,6 +65,26 @@ export default function RootLayout({
       <body
         className={`${inter.variable} ${bricolage.variable} font-sans antialiased bg-black text-white`}
       >
+        <script
+          type="application/ld+json"
+          // biome-ignore lint/security/noDangerouslySetInnerHtml: Required for JSON-LD schema injectiontant
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "SoftwareApplication",
+              name: "OpenKanban",
+              description:
+                "A sleek, real-time Kanban board with no signup required. Just type a URL and start organizing instantly across devices.",
+              applicationCategory: "ProductivityApplication",
+              operatingSystem: "Any",
+              offers: {
+                "@type": "Offer",
+                price: "0",
+                priceCurrency: "USD",
+              },
+            }),
+          }}
+        />
         {children}
       </body>
     </html>

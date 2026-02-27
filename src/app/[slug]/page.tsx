@@ -13,7 +13,12 @@ export async function generateMetadata({
   const { slug } = await params;
   return {
     title: `${slug} - OpenKanban`,
-    description: `Kanban board for ${slug}`,
+    description: `Private, real-time Kanban board for ${slug}.`,
+    robots: {
+      index: false,
+      follow: false,
+      nocache: true,
+    },
   };
 }
 

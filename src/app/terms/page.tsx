@@ -1,5 +1,12 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { Logo } from "@/components/ui/logo";
+
+export const metadata: Metadata = {
+  title: "OpenKanban - Terms of Service",
+  description:
+    "Read the terms of service for OpenKanban. Understand our ephemeral data policy and frictionless manifesto.",
+};
 
 export default function TermsPage() {
   return (

@@ -1,5 +1,12 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { Logo } from "@/components/ui/logo";
+
+export const metadata: Metadata = {
+  title: "OpenKanban - Privacy Policy",
+  description:
+    "Learn how OpenKanban handles your data with extreme frictionlessness. We collect minimal data and do not track you.",
+};
 
 export default function PrivacyPage() {
   return (

@@ -1,36 +1,111 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# OpenKanban
+
+A modern, real-time Kanban board application built with Next.js, React, and Supabase. OpenKanban provides a seamless, collaborative experience for managing tasks and workflows with beautifully fluid animations and drag-and-drop capabilities.
+
+## Features
+
+* **Real-time Collaboration**: Experience instant updates across clients using Supabase Broadcast and Presence.
+* **Fluid Drag and Drop**: Intuitively reorganize columns and tasks with `@hello-pangea/dnd` and Framer Motion.
+* **Task Management**: Create, edit, and organize tasks with descriptions and priority levels (low, medium, high, urgent).
+* **Column Controls**: Customize your board layout by collapsing columns to focus on what matters most.
+* **Import and Export**: Easily migrate your board data in and out of the application.
+* **Modern UI**: A responsive, accessible, and aesthetically pleasing interface powered by Tailwind CSS v4.
+
+## Tech Stack
+
+* **Framework**: Next.js 14+ (App Router)
+* **Library**: React 19
+* **Database and Real-time**: Supabase (PostgreSQL)
+* **Styling**: Tailwind CSS v4
+* **Animations**: motion (Framer Motion)
+* **Drag and Drop**: `@hello-pangea/dnd`
+* **Icons**: Tabler Icons
+* **Linting and Formatting**: Biome
+* **Language**: TypeScript
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
 
+Ensure you have the following installed on your local machine:
+* Node.js (v20 or newer recommended)
+* pnpm (preferred package manager)
+* A Supabase account and project
+
+### Installation
+
+1. Clone the repository:
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone https://github.com/your-username/openkanban.git
+cd openkanban
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. Install dependencies:
+```bash
+pnpm install
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Supabase Setup
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+1. Create a new Supabase project.
+2. Navigate to the SQL Editor in your Supabase dashboard.
+3. Execute the migration scripts found in the `supabase/migrations` directory in sequential order:
+   * `001_create_boards.sql`
+   * `002_create_columns.sql`
+   * `003_create_tasks.sql`
+   * `004_add_is_collapsed_to_columns.sql`
+4. Copy your Supabase URL and Anon Key.
 
-## Learn More
+### Environment Variables
 
-To learn more about Next.js, take a look at the following resources:
+Create a `.env.local` file in the root of your project and add your Supabase credentials:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```ini
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Running the Application
 
-## Deploy on Vercel
+Start the development server:
+```bash
+pnpm dev
+```
+Open `http://localhost:3000` in your browser to view the application.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Project Structure
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+* `/src/app`: Next.js App Router pages and layouts.
+* `/src/components`: Reusable React components.
+  * `/board`: Kanban board specific components (columns, tasks, modals).
+  * `/landing`: Components for the marketing and landing pages.
+  * `/ui`: Shared UI elements.
+* `/src/hooks`: Custom React hooks, including real-time synchronization logic (`use-realtime.ts`, `use-board.ts`).
+* `/src/lib`: Utility functions, database integrations, and TypeScript definitions.
+* `/supabase`: Database migration scripts and configurations.
+
+## Architecture Highlights
+
+* **Optimistic UI Updates**: The board implements optimistic updates for drag-and-drop operations, ensuring immediate visual feedback before the server confirms the change.
+* **Component Modularity**: Complex UI parts are broken down into manageable components such as `Board`, `Column`, `TaskCard`, and `ColumnHeader`.
+* **Real-time Sync**: Changes are broadcasted across clients instantly, resolving conflicts seamlessly by preferring the latest server truth.
+
+## Contributing
+
+Contributions are welcome. Please ensure that you follow the existing code style. We use Biome for linting and formatting.
+
+1. Fork the project.
+2. Create your feature branch: `git checkout -b feature/amazing-feature`
+3. Commit your changes: `git commit -m "Add some amazing feature"`
+4. Push to the branch: `git push origin feature/amazing-feature`
+5. Open a Pull Request.
+
+Make sure to run the following commands before committing:
+```bash
+pnpm run format
+pnpm run lint
+```
+
+## License
+
+This project is licensed under the MIT License. See the LICENSE file for more details.

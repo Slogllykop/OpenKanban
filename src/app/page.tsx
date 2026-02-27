@@ -18,7 +18,7 @@ export default function Home() {
   });
 
   return (
-    <div
+    <main
       ref={containerRef}
       className="relative min-h-[500vh] bg-black text-white selection:bg-accent selection:text-black overflow-hidden font-sans"
     >
@@ -57,6 +57,6 @@ export default function Home() {
 
       <CallToAction />
       <Footer />
-    </div>
+    </main>
   );
 }

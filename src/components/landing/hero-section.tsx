@@ -36,6 +36,9 @@ export const HeroSection = ({
         </div>
 
         <h1 className="text-6xl sm:text-7xl md:text-9xl font-display font-bold tracking-tighter leading-[0.9] mb-6 overflow-hidden py-2">
+          <span className="sr-only">
+            OpenKanban - Free Real-time Kanban Board.
+          </span>
           <motion.span
             initial={{ y: "100%" }}
             animate={{ y: 0 }}
