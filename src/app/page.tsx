@@ -20,14 +20,14 @@ export default function Home() {
   return (
     <main
       ref={containerRef}
-      className="relative min-h-[500vh] overflow-hidden bg-black font-sans text-white selection:bg-accent selection:text-black"
+      className="relative overflow-hidden bg-black font-sans text-white selection:bg-accent selection:text-black"
     >
       <ScrollProgress progress={scrollYProgress} />
       <BackgroundLayer scrollYProgress={scrollYProgress} />
       <HeroSection scrollYProgress={scrollYProgress} />
 
       {/* Extended Story Sections Container */}
-      <div className="relative z-20 mt-[100vh] border-neutral-900 border-t bg-black/40 backdrop-blur-md">
+      <div className="relative z-20 mt-[10vh] border-neutral-900 border-t bg-black/40 backdrop-blur-md">
         <article className="container mx-auto">
           <StorySection
             title="The No-Friction Manifesto."

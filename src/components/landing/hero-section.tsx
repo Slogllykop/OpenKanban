@@ -23,7 +23,7 @@ export const HeroSection = ({
   }
 
   return (
-    <div className="sticky top-0 z-10 flex h-screen flex-col items-center justify-center overflow-hidden px-6">
+    <div className="sticky top-0 z-10 flex h-[80vh] flex-col items-center justify-center overflow-hidden px-6 lg:h-[90dvh]">
       <motion.div
         style={{ y: heroY, opacity: heroOpacity, scale: heroScale }}
         className="relative flex w-full max-w-5xl flex-col items-center text-center"
