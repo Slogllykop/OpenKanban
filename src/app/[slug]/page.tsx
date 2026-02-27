@@ -13,7 +13,7 @@ export async function generateMetadata({
 }: BoardPageProps): Promise<Metadata> {
   const { slug } = await params;
   return {
-    title: `${slug} - OpenKanban`,
+    title: `${slug}`,
     description: `Private, real-time Kanban board for ${slug}.`,
     robots: {
       index: false,

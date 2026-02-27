@@ -31,12 +31,12 @@ export function TaskCard({ task, index, onEdit, onDelete }: TaskCardProps) {
   const priority = priorityConfig[task.priority];
 
   return (
-    <Draggable draggableId={task.id} index={index}>
+    <Draggable draggableId={task.id} index={index} key={task.id}>
       {(provided, snapshot) => (
         <div
           ref={provided.innerRef}
           {...provided.draggableProps}
-          className={`group relative flex cursor-pointer overflow-hidden rounded-lg border bg-surface-raised outline-none transition-all duration-150 has-focus-visible:ring-1 has-focus-visible:ring-accent ${
+          className={`group relative flex cursor-pointer overflow-hidden rounded-lg border bg-surface-raised outline-none transition-colors duration-150 has-focus-visible:ring-1 has-focus-visible:ring-accent ${
             snapshot.isDragging
               ? "scale-[1.02] border-accent/40 shadow-accent/5 shadow-lg"
               : "border-border hover:border-border-hover"
