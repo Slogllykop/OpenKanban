@@ -19,14 +19,14 @@ export const BackgroundLayer = ({
 
       <motion.div
         style={{ rotate: bgRotate1, y: bgY }}
-        className="absolute top-[-10%] left-[-10%] w-[80vw] h-[80vw] rounded-full border border-neutral-800/50 opacity-30 blur-[2px]"
+        className="absolute top-[-10%] left-[-10%] w-[80vw] h-[80vw] rounded-full border border-neutral-800/50 opacity-80 blur-[2px]"
       />
       <motion.div
         style={{
           rotate: bgRotate2,
           y: bottomBgY,
         }}
-        className="absolute bottom-[-20%] right-[-10%] w-[60vw] h-[60vw] rounded-full border border-dashed border-accent/20 opacity-40 blur-[1px]"
+        className="absolute bottom-[-20%] right-[-10%] w-[60vw] h-[60vw] rounded-full border border-dashed border-accent/20 opacity-60 blur-[1px]"
       />
 
       {/* Glowing Orbs */}

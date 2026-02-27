@@ -82,8 +82,8 @@ export const HeroSection = ({
         >
           <div className="flex-1 relative group">
             <div className="absolute inset-0 rounded-xl bg-accent blur-md opacity-0 group-focus-within:opacity-20 transition-opacity duration-500"></div>
-            <div className="relative flex items-center gap-0 rounded-xl border border-neutral-800 bg-black/80 backdrop-blur-xl focus-within:border-accent transition-colors overflow-hidden h-14 sm:h-auto">
-              <span className="pl-4 sm:pl-5 text-sm font-medium text-neutral-500 select-none">
+            <div className="relative flex items-center gap-0 rounded-xl border border-neutral-800 bg-black/80 backdrop-blur-xl focus-within:border-accent transition-colors h-14 sm:h-auto overflow-hidden">
+              <span className="shrink-0 pl-3 sm:pl-5 text-xs sm:text-sm font-medium text-neutral-500 select-none">
                 kanban.isdevs.cv/
               </span>
               <input
@@ -93,7 +93,7 @@ export const HeroSection = ({
                 value={slug}
                 onChange={(e) => setSlug(e.target.value)}
                 placeholder="super-secret-board"
-                className="flex-1 bg-transparent py-4 pr-5 pl-1 text-base text-white placeholder-neutral-700 outline-none"
+                className="flex-1 min-w-0 bg-transparent py-4 pr-4 pl-1 text-sm sm:text-base text-white placeholder-neutral-700 outline-none"
               />
             </div>
           </div>
