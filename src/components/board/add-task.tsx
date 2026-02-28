@@ -2,6 +2,8 @@
 
 import { IconPlus } from "@tabler/icons-react";
 import { useEffect, useRef, useState } from "react";
+import { useDevice } from "@/hooks/use-device";
+import { cn } from "@/lib/utils";
 
 interface AddTaskProps {
   onAdd: (title: string) => void;
@@ -11,6 +13,7 @@ export function AddTask({ onAdd }: AddTaskProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [title, setTitle] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
+  const { isMobile } = useDevice();
 
   useEffect(() => {
     if (isOpen && inputRef.current) {
@@ -32,7 +35,10 @@ export function AddTask({ onAdd }: AddTaskProps) {
       <button
         type="button"
         onClick={() => setIsOpen(true)}
-        className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-accent px-4 py-2.5 font-bold text-sm text-surface-overlay shadow-sm transition-all hover:opacity-90 active:scale-[0.98]"
+        className={cn(
+          "flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl px-4 py-2.5 font-bold text-sm shadow-sm transition-all hover:opacity-90 active:scale-[0.98]",
+          isMobile ? "bg-accent text-surface-overlay" : "text-text-muted",
+        )}
       >
         <IconPlus size={18} stroke={2.5} />
         Add Task
