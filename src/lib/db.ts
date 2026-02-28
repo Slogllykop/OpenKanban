@@ -250,26 +250,10 @@ export async function getFullBoard(
   supabase: SupabaseClient,
   slug: string,
 ): Promise<{ board: Board; columns: ColumnWithTasks[] } | null> {
-  const board = await getBoard(supabase, slug);
-  if (!board) return null;
+  const response = await supabase
+    .rpc("get_full_board_p", { p_slug: slug })
+    .maybeSingle();
 
-  const [columns, tasks] = await Promise.all([
-    getColumns(supabase, board.id),
-    getTasksByBoard(supabase, board.id),
-  ]);
-
-  // Group tasks by column_id
-  const tasksByColumn = new Map<string, Task[]>();
-  for (const task of tasks) {
-    const existing = tasksByColumn.get(task.column_id) ?? [];
-    existing.push(task);
-    tasksByColumn.set(task.column_id, existing);
-  }
-
-  const columnsWithTasks: ColumnWithTasks[] = columns.map((col) => ({
-    ...col,
-    tasks: tasksByColumn.get(col.id) ?? [],
-  }));
-
-  return { board, columns: columnsWithTasks };
+  if (response.error) handleSupabaseError(response.error);
+  return response.data as { board: Board; columns: ColumnWithTasks[] } | null;
 }
