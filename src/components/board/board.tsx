@@ -1,8 +1,9 @@
 "use client";
 
 import { DragDropContext, type DropResult } from "@hello-pangea/dnd";
-import { useRouter } from "next/navigation";
+import { LayoutGroup } from "motion/react";
 import { useCallback, useRef, useState } from "react";
+import { toast } from "sonner";
 import { AddColumn } from "@/components/board/add-column";
 import { BoardToolbar } from "@/components/board/board-toolbar";
 import { Column } from "@/components/board/column";
@@ -24,7 +25,6 @@ interface BoardProps {
 }
 
 export function Board({ slug, initialBoard, initialColumns }: BoardProps) {
-  const router = useRouter();
   const { isMobile, isReady } = useDevice();
 
   // Ref to hold refreshFromDB - avoids circular dependency between hooks
@@ -74,6 +74,9 @@ export function Board({ slug, initialBoard, initialColumns }: BoardProps) {
   // Delete column confirmation
   const [deletingColumnId, setDeletingColumnId] = useState<string | null>(null);
 
+  // Delete task confirmation
+  const [deletingTaskId, setDeletingTaskId] = useState<string | null>(null);
+
   // Drag & drop handler (desktop only)
   const onDragEnd = useCallback(
     (result: DropResult) => {
@@ -101,7 +104,6 @@ export function Board({ slug, initialBoard, initialColumns }: BoardProps) {
     setIsDeletingBoard(true);
     try {
       await removeBoard();
-      router.push("/");
     } finally {
       setIsDeletingBoard(false);
       setShowDeleteBoard(false);
@@ -115,9 +117,32 @@ export function Board({ slug, initialBoard, initialColumns }: BoardProps) {
     setDeletingColumnId(null);
   }
 
+  // Task delete handler
+  async function handleDeleteTask() {
+    if (!deletingTaskId) return;
+    await removeTask(deletingTaskId);
+    // Close modal if the deleted task was being edited
+    if (editingTask?.id === deletingTaskId) {
+      setEditingTask(null);
+    }
+    setDeletingTaskId(null);
+  }
+
+  // Request task deletion (opens confirmation dialog)
+  function requestDeleteTask(taskId: string) {
+    setDeletingTaskId(taskId);
+  }
+
   // Export handler
   function handleExport() {
-    exportBoard(slug, columns);
+    try {
+      exportBoard(slug, columns);
+      toast.success("Board exported successfully");
+    } catch {
+      toast.error("Export failed", {
+        description: "Could not export the board. Please try again.",
+      });
+    }
   }
 
   // Import handler
@@ -132,8 +157,12 @@ export function Board({ slug, initialBoard, initialColumns }: BoardProps) {
         await importBoard(file, slug);
         await refreshFromDB();
         broadcastSync();
+        toast.success("Board imported successfully");
       } catch (err) {
-        console.error("Import failed:", err);
+        toast.error("Import failed", {
+          description:
+            err instanceof Error ? err.message : "Invalid file format.",
+        });
       }
     };
     input.click();
@@ -164,33 +193,35 @@ export function Board({ slug, initialBoard, initialColumns }: BoardProps) {
           onShiftColumn={moveColumn}
           onAddTask={addTask}
           onEditTask={(task) => setEditingTask(task)}
-          onDeleteTask={removeTask}
+          onDeleteTask={requestDeleteTask}
           onMoveTask={moveTask}
           onRequestDeleteColumn={(colId) => setDeletingColumnId(colId)}
         />
       ) : (
         /* ── Desktop: horizontal scrolling multi-column view ── */
         <DragDropContext onDragEnd={onDragEnd}>
-          <div className="board-scroll flex flex-1 gap-4 overflow-x-auto p-4 md:p-6">
-            {columns.map((column, index) => (
-              <Column
-                key={column.id}
-                column={column}
-                canDelete={columns.length > 1}
-                canShiftLeft={index > 0}
-                canShiftRight={index < columns.length - 1}
-                onRenameColumn={renameColumn}
-                onToggleCollapse={toggleColumnCollapse}
-                onDeleteColumn={(colId) => setDeletingColumnId(colId)}
-                onShiftLeft={() => moveColumn(index, index - 1)}
-                onShiftRight={() => moveColumn(index, index + 1)}
-                onAddTask={addTask}
-                onEditTask={(task) => setEditingTask(task)}
-                onDeleteTask={removeTask}
-              />
-            ))}
-            <AddColumn onAdd={() => addColumn()} />
-          </div>
+          <LayoutGroup>
+            <div className="board-scroll flex flex-1 gap-4 overflow-x-auto p-4 md:p-6">
+              {columns.map((column, index) => (
+                <Column
+                  key={column.id}
+                  column={column}
+                  canDelete={columns.length > 1}
+                  canShiftLeft={index > 0}
+                  canShiftRight={index < columns.length - 1}
+                  onRenameColumn={renameColumn}
+                  onToggleCollapse={toggleColumnCollapse}
+                  onDeleteColumn={(colId) => setDeletingColumnId(colId)}
+                  onShiftLeft={() => moveColumn(index, index - 1)}
+                  onShiftRight={() => moveColumn(index, index + 1)}
+                  onAddTask={addTask}
+                  onEditTask={(task) => setEditingTask(task)}
+                  onDeleteTask={requestDeleteTask}
+                />
+              ))}
+              <AddColumn onAdd={() => addColumn()} />
+            </div>
+          </LayoutGroup>
         </DragDropContext>
       )}
 
@@ -201,8 +232,7 @@ export function Board({ slug, initialBoard, initialColumns }: BoardProps) {
         onClose={() => setEditingTask(null)}
         onSave={editTask}
         onDelete={(taskId) => {
-          removeTask(taskId);
-          setEditingTask(null);
+          requestDeleteTask(taskId);
         }}
       />
 
@@ -225,6 +255,16 @@ export function Board({ slug, initialBoard, initialColumns }: BoardProps) {
         title="Delete Column"
         description="Are you sure you want to delete this column? All tasks in this column will be permanently removed."
         confirmLabel="Delete Column"
+      />
+
+      {/* Delete task confirmation */}
+      <ConfirmDialog
+        open={deletingTaskId !== null}
+        onClose={() => setDeletingTaskId(null)}
+        onConfirm={handleDeleteTask}
+        title="Delete Task"
+        description="Are you sure you want to delete this task? This action cannot be undone."
+        confirmLabel="Delete Task"
       />
     </div>
   );

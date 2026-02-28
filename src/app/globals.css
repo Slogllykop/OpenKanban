@@ -16,6 +16,8 @@
   --color-surface-base: #000000;
   --color-surface-raised: #0a0a0a;
   --color-surface-overlay: #111111;
+  --color-surface-column: #0c0c0c;
+  --color-surface-column-collapsed: #050505;
 
   /* Borders */
   --color-border: #1a1a1a;

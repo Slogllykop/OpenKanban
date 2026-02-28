@@ -1,4 +1,9 @@
-import { type MotionValue, motion, useTransform } from "motion/react";
+import {
+  AnimatePresence,
+  type MotionValue,
+  motion,
+  useTransform,
+} from "motion/react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Logo } from "@/components/ui/logo";
@@ -9,6 +14,7 @@ export const HeroSection = ({
   scrollYProgress: MotionValue<number>;
 }) => {
   const [slug, setSlug] = useState("");
+  const [isNavigating, setIsNavigating] = useState(false);
   const router = useRouter();
 
   const heroY = useTransform(scrollYProgress, [0, 0.2], [0, 200]);
@@ -18,7 +24,8 @@ export const HeroSection = ({
   function handleSubmit(e: React.SubmitEvent) {
     e.preventDefault();
     const trimmed = slug.trim();
-    if (!trimmed) return;
+    if (!trimmed || isNavigating) return;
+    setIsNavigating(true);
     router.push(`/${trimmed}`);
   }
 
@@ -93,18 +100,42 @@ export const HeroSection = ({
                 value={slug}
                 onChange={(e) => setSlug(e.target.value)}
                 placeholder="super-secret-board"
-                className="min-w-0 flex-1 bg-transparent py-4 pr-4 pl-1 text-sm text-white placeholder-neutral-700 outline-none sm:text-base"
+                disabled={isNavigating}
+                className="min-w-0 flex-1 bg-transparent py-4 pr-4 pl-1 text-sm text-white placeholder-neutral-700 outline-none disabled:opacity-50 sm:text-base"
               />
             </div>
           </div>
           <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
+            whileHover={isNavigating ? {} : { scale: 1.02 }}
+            whileTap={isNavigating ? {} : { scale: 0.98 }}
             type="submit"
-            disabled={!slug.trim()}
-            className="h-14 rounded-xl border border-accent bg-accent px-8 py-4 font-bold text-black text-sm tracking-wide transition-all hover:border-accent-hover hover:bg-accent-hover hover:shadow-[0_0_20px_rgba(225,255,0,0.3)] disabled:cursor-not-allowed disabled:brightness-50 disabled:hover:scale-100 disabled:hover:shadow-none sm:h-auto"
+            disabled={!slug.trim() || isNavigating}
+            className="relative h-14 min-w-[120px] rounded-xl border border-accent bg-accent px-8 py-4 font-bold text-black text-sm tracking-wide transition-all hover:border-accent-hover hover:bg-accent-hover hover:shadow-[0_0_20px_rgba(225,255,0,0.3)] disabled:cursor-not-allowed disabled:brightness-50 disabled:hover:scale-100 disabled:hover:shadow-none sm:h-auto"
           >
-            Create
+            <AnimatePresence mode="wait" initial={false}>
+              {isNavigating ? (
+                <motion.span
+                  key="spinner"
+                  initial={{ opacity: 0, scale: 0.5 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.5 }}
+                  transition={{ duration: 0.15 }}
+                  className="flex items-center justify-center"
+                >
+                  <span className="block h-5 w-5 animate-spin rounded-full border-2 border-black/30 border-t-black" />
+                </motion.span>
+              ) : (
+                <motion.span
+                  key="text"
+                  initial={{ opacity: 0, scale: 0.5 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.5 }}
+                  transition={{ duration: 0.15 }}
+                >
+                  Create
+                </motion.span>
+              )}
+            </AnimatePresence>
           </motion.button>
         </form>
       </motion.div>
