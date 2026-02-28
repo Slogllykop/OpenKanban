@@ -32,14 +32,12 @@ export async function getBoard(
   supabase: SupabaseClient,
   slug: string,
 ): Promise<Board | null> {
-  const { data, error } = await supabase
-    .from("boards")
-    .select("*")
-    .eq("slug", slug)
+  const response = await supabase
+    .rpc("get_board_p", { p_slug: slug })
     .maybeSingle();
 
-  if (error) handleSupabaseError(error);
-  return data;
+  if (response.error) handleSupabaseError(response.error);
+  return response.data as Board | null;
 }
 
 /** Create a new board with the given slug */
@@ -47,14 +45,12 @@ export async function createBoard(
   supabase: SupabaseClient,
   slug: string,
 ): Promise<Board> {
-  const { data, error } = await supabase
-    .from("boards")
-    .insert({ slug })
-    .select()
+  const response = await supabase
+    .rpc("create_board_p", { p_slug: slug })
     .single();
 
-  if (error) handleSupabaseError(error);
-  return data;
+  if (response.error) handleSupabaseError(response.error);
+  return response.data as Board;
 }
 
 /** Delete a board and all its columns/tasks (cascade) */
@@ -62,7 +58,7 @@ export async function deleteBoard(
   supabase: SupabaseClient,
   boardId: string,
 ): Promise<void> {
-  const { error } = await supabase.from("boards").delete().eq("id", boardId);
+  const { error } = await supabase.rpc("delete_board_p", { p_id: boardId });
   if (error) handleSupabaseError(error);
 }
 
@@ -75,14 +71,12 @@ export async function getColumns(
   supabase: SupabaseClient,
   boardId: string,
 ): Promise<Column[]> {
-  const { data, error } = await supabase
-    .from("columns")
-    .select("*")
-    .eq("board_id", boardId)
-    .order("position", { ascending: true });
+  const response = await supabase.rpc("get_columns_p", {
+    p_board_id: boardId,
+  });
 
-  if (error) handleSupabaseError(error);
-  return data ?? [];
+  if (response.error) handleSupabaseError(response.error);
+  return (response.data as Column[]) ?? [];
 }
 
 /** Create a new column */
@@ -90,31 +84,35 @@ export async function createColumn(
   supabase: SupabaseClient,
   payload: CreateColumnPayload,
 ): Promise<Column> {
-  const { data, error } = await supabase
-    .from("columns")
-    .insert(payload)
-    .select()
+  const response = await supabase
+    .rpc("create_column_p", {
+      p_board_id: payload.board_id,
+      p_title: payload.title,
+      p_position: payload.position,
+    })
     .single();
 
-  if (error) handleSupabaseError(error);
-  return data;
+  if (response.error) handleSupabaseError(response.error);
+  return response.data as Column;
 }
 
-/** Update a column (title, position) */
+/** Update a column (title, position, is_collapsed) */
 export async function updateColumn(
   supabase: SupabaseClient,
   payload: UpdateColumnPayload,
 ): Promise<Column> {
   const { id, ...updates } = payload;
-  const { data, error } = await supabase
-    .from("columns")
-    .update(updates)
-    .eq("id", id)
-    .select()
+  const response = await supabase
+    .rpc("update_column_p", {
+      p_id: id,
+      p_title: updates.title ?? null,
+      p_position: updates.position ?? null,
+      p_is_collapsed: updates.is_collapsed ?? null,
+    })
     .single();
 
-  if (error) handleSupabaseError(error);
-  return data;
+  if (response.error) handleSupabaseError(response.error);
+  return response.data as Column;
 }
 
 /** Delete a column (cascades to tasks) */
@@ -122,7 +120,7 @@ export async function deleteColumn(
   supabase: SupabaseClient,
   columnId: string,
 ): Promise<void> {
-  const { error } = await supabase.from("columns").delete().eq("id", columnId);
+  const { error } = await supabase.rpc("delete_column_p", { p_id: columnId });
   if (error) handleSupabaseError(error);
 }
 
@@ -137,9 +135,16 @@ export async function updateColumnPositions(
     new Map(updates.map((item) => [item.id, item])).values(),
   );
 
-  const { error } = await supabase
-    .from("columns")
-    .upsert(uniqueUpdates, { onConflict: "id" });
+  const payload = uniqueUpdates.map((col) => ({
+    id: col.id,
+    position: col.position,
+    title: col.title,
+    is_collapsed: col.is_collapsed,
+  }));
+
+  const { error } = await supabase.rpc("update_column_positions_p", {
+    p_updates: payload,
+  });
   if (error) handleSupabaseError(error);
 }
 
@@ -152,16 +157,12 @@ export async function getTasksByBoard(
   supabase: SupabaseClient,
   boardId: string,
 ): Promise<Task[]> {
-  const { data, error } = await supabase
-    .from("tasks")
-    .select("*, columns!inner(board_id)")
-    .eq("columns.board_id", boardId)
-    .order("position", { ascending: true });
+  const response = await supabase.rpc("get_tasks_by_board_p", {
+    p_board_id: boardId,
+  });
 
-  if (error) handleSupabaseError(error);
-
-  // Strip the joined columns data, return flat tasks
-  return (data ?? []).map(({ columns: _, ...task }) => task as Task);
+  if (response.error) handleSupabaseError(response.error);
+  return (response.data as Task[]) ?? [];
 }
 
 /** Create a new task */
@@ -169,14 +170,18 @@ export async function createTask(
   supabase: SupabaseClient,
   payload: CreateTaskPayload,
 ): Promise<Task> {
-  const { data, error } = await supabase
-    .from("tasks")
-    .insert(payload)
-    .select()
+  const response = await supabase
+    .rpc("create_task_p", {
+      p_column_id: payload.column_id,
+      p_title: payload.title,
+      p_description: payload.description ?? null,
+      p_priority: payload.priority ?? "medium",
+      p_position: payload.position,
+    })
     .single();
 
-  if (error) handleSupabaseError(error);
-  return data;
+  if (response.error) handleSupabaseError(response.error);
+  return response.data as Task;
 }
 
 /** Update a task (title, description, priority, column_id, position) */
@@ -185,15 +190,19 @@ export async function updateTask(
   payload: UpdateTaskPayload,
 ): Promise<Task> {
   const { id, ...updates } = payload;
-  const { data, error } = await supabase
-    .from("tasks")
-    .update(updates)
-    .eq("id", id)
-    .select()
+  const response = await supabase
+    .rpc("update_task_p", {
+      p_id: id,
+      p_title: updates.title ?? null,
+      p_description: updates.description ?? null,
+      p_priority: updates.priority ?? null,
+      p_column_id: updates.column_id ?? null,
+      p_position: updates.position ?? null,
+    })
     .single();
 
-  if (error) handleSupabaseError(error);
-  return data;
+  if (response.error) handleSupabaseError(response.error);
+  return response.data as Task;
 }
 
 /** Delete a task */
@@ -201,7 +210,7 @@ export async function deleteTask(
   supabase: SupabaseClient,
   taskId: string,
 ): Promise<void> {
-  const { error } = await supabase.from("tasks").delete().eq("id", taskId);
+  const { error } = await supabase.rpc("delete_task_p", { p_id: taskId });
   if (error) handleSupabaseError(error);
 }
 
@@ -212,16 +221,23 @@ export async function updateTaskPositions(
 ): Promise<void> {
   if (updates.length === 0) return;
 
-  // Deduplicate by ID to prevent "ON CONFLICT DO UPDATE command cannot affect row a second time" error
+  // Deduplicate by ID to prevent updating the same row twice in one batch
   const uniqueUpdates = Array.from(
     new Map(updates.map((item) => [item.id, item])).values(),
   );
 
-  // Supabase upsert needs to know what the primary key is if it differs or if we are just updating
-  // We specify `onConflict: 'id'` because without it, Postgres might try to insert duplicates or get confused by other constraints
-  const { error } = await supabase
-    .from("tasks")
-    .upsert(uniqueUpdates, { onConflict: "id" });
+  const payload = uniqueUpdates.map((task) => ({
+    id: task.id,
+    column_id: task.column_id,
+    position: task.position,
+    title: task.title,
+    description: task.description,
+    priority: task.priority,
+  }));
+
+  const { error } = await supabase.rpc("update_task_positions_p", {
+    p_updates: payload,
+  });
   if (error) handleSupabaseError(error);
 }
 
