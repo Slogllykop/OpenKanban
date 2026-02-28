@@ -62,7 +62,7 @@ export function Board({ slug, initialBoard, initialColumns }: BoardProps) {
   refreshRef.current = refreshFromDB;
 
   // Presence
-  const { viewerCount } = usePresence(slug);
+  const { viewerCount, isConnected } = usePresence(slug);
 
   // Task modal state
   const [editingTask, setEditingTask] = useState<Task | null>(null);
@@ -144,6 +144,7 @@ export function Board({ slug, initialBoard, initialColumns }: BoardProps) {
       <BoardToolbar
         slug={slug}
         viewerCount={viewerCount}
+        isConnected={isConnected}
         onDeleteBoard={() => setShowDeleteBoard(true)}
         onExport={handleExport}
         onImport={handleImport}

@@ -12,6 +12,7 @@ import { generateUUID } from "@/lib/utils";
  */
 export function usePresence(slug: string) {
   const [viewerCount, setViewerCount] = useState(1);
+  const [isConnected, setIsConnected] = useState(true);
 
   /** Track if we've already shown the error toast to avoid spam */
   const hasShownErrorRef = useRef(false);
@@ -30,6 +31,7 @@ export function usePresence(slug: string) {
 
     ch.subscribe(async (status) => {
       if (status === "SUBSCRIBED") {
+        setIsConnected(true);
         hasShownErrorRef.current = false;
         try {
           await ch.track({ online_at: new Date().toISOString() });
@@ -38,9 +40,10 @@ export function usePresence(slug: string) {
         }
       }
       if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
+        setIsConnected(false);
         if (!hasShownErrorRef.current) {
           hasShownErrorRef.current = true;
-          toast.error("Presence unavailable", {
+          toast.error("Presence lost", {
             description:
               "Live viewer count may be inaccurate. This does not affect your work.",
           });
@@ -54,5 +57,5 @@ export function usePresence(slug: string) {
     };
   }, [slug]);
 
-  return { viewerCount };
+  return { viewerCount, isConnected };
 }

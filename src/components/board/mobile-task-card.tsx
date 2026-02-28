@@ -7,6 +7,7 @@ import {
   IconChevronUp,
   IconTrash,
 } from "@tabler/icons-react";
+import { motion } from "motion/react";
 import { useState } from "react";
 import {
   DropdownMenu,
@@ -62,7 +63,13 @@ export function MobileTaskCard({
   const otherColumns = columns.filter((col) => col.id !== task.column_id);
 
   return (
-    <div className="group relative flex flex-col overflow-hidden rounded-lg border border-border bg-surface-raised transition-colors duration-150 hover:border-border-hover">
+    <motion.div
+      layoutId={task.id}
+      transition={{
+        duration: 0.2,
+      }}
+      className="group relative flex flex-col overflow-hidden rounded-lg border border-border bg-surface-raised transition-colors duration-150 hover:border-border-hover"
+    >
       {/* Main tappable content area */}
       <button
         type="button"
@@ -177,6 +184,6 @@ export function MobileTaskCard({
           <span>Delete</span>
         </button>
       </div>
-    </div>
+    </motion.div>
   );
 }

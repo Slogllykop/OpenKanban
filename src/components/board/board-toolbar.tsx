@@ -13,6 +13,7 @@ import { Logo } from "@/components/ui/logo";
 interface BoardToolbarProps {
   slug: string;
   viewerCount: number;
+  isConnected: boolean;
   onDeleteBoard: () => void;
   onExport: () => void;
   onImport: () => void;
@@ -21,6 +22,7 @@ interface BoardToolbarProps {
 export function BoardToolbar({
   slug,
   viewerCount,
+  isConnected,
   onDeleteBoard,
   onExport,
   onImport,
@@ -44,12 +46,18 @@ export function BoardToolbar({
           {displayTitle}
         </h1>
 
-        {/* Live viewer count */}
-        {viewerCount > 1 && (
+        {/* Live viewer count & connection status */}
+        {(viewerCount > 1 || !isConnected) && (
           <div className="flex items-center gap-1.5 rounded-full bg-surface-overlay px-2.5 py-1">
             <span
-              className="h-1.5 w-1.5 rounded-full bg-green-500"
-              style={{ animation: "pulse-dot 2s ease-in-out infinite" }}
+              className={`h-1.5 w-1.5 rounded-full ${
+                isConnected ? "bg-green-500" : "bg-red-500"
+              }`}
+              style={
+                isConnected
+                  ? { animation: "pulse-dot 2s ease-in-out infinite" }
+                  : undefined
+              }
             />
             <IconUsers size={12} className="text-text-muted" />
             <span className="font-medium text-[11px] text-text-secondary">
