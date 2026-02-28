@@ -144,6 +144,22 @@ button {
   }
 }
 
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Board loading spinner — shown while device type is being determined */
+.board-spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid var(--color-border);
+  border-top-color: var(--color-accent);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
 /* ----------------------------------------------------------------
    Sonner Toast Overrides (Mobile)
    ---------------------------------------------------------------- */

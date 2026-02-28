@@ -24,6 +24,7 @@ import type {
   Priority,
   Task,
 } from "@/lib/types";
+import { generateUUID } from "@/lib/utils";
 
 interface UseBoardOptions {
   slug: string;
@@ -40,7 +41,7 @@ function makeLocalColumn(
   id?: string,
 ): ColumnWithTasks {
   return {
-    id: id || `local-${crypto.randomUUID()}`,
+    id: id || `local-${generateUUID()}`,
     board_id: "",
     title,
     position,

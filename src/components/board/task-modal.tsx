@@ -165,7 +165,7 @@ export function TaskModal({
                     day: "numeric",
                     year: "numeric",
                   })
-                : "—"}
+                : "-"}
             </div>
           </div>
         </div>

@@ -32,31 +32,33 @@ export function AddTask({ onAdd }: AddTaskProps) {
       <button
         type="button"
         onClick={() => setIsOpen(true)}
-        className="flex w-full cursor-pointer items-center gap-1.5 rounded-lg px-2 py-2 text-text-muted text-xs transition-colors hover:bg-surface-overlay hover:text-text-secondary"
+        className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-accent px-4 py-2.5 font-bold text-sm text-surface-overlay shadow-sm transition-all hover:opacity-90 active:scale-[0.98]"
       >
-        <IconPlus size={14} />
-        Add task
+        <IconPlus size={18} stroke={2.5} />
+        Add Task
       </button>
     );
   }
 
   return (
-    <div className="rounded-lg border border-border bg-surface-raised p-2">
-      <input
-        ref={inputRef}
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
-        onKeyDown={(e) => {
-          if (e.key === "Enter") handleSubmit();
-          if (e.key === "Escape") {
-            setTitle("");
-            setIsOpen(false);
-          }
-        }}
-        onBlur={handleSubmit}
-        placeholder="Task title..."
-        className="w-full bg-transparent text-sm text-text-primary placeholder-text-muted outline-none"
-      />
+    <div className="rounded-xl border border-accent/30 bg-surface-overlay p-1 shadow-sm transition-all focus-within:border-accent focus-within:ring-4 focus-within:ring-accent/10">
+      <div className="flex rounded-lg bg-surface-raised p-1">
+        <input
+          ref={inputRef}
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") handleSubmit();
+            if (e.key === "Escape") {
+              setTitle("");
+              setIsOpen(false);
+            }
+          }}
+          onBlur={handleSubmit}
+          placeholder="What needs to be done?"
+          className="w-full flex-1 bg-transparent px-3 py-1.5 font-medium text-sm text-text-primary placeholder-text-muted outline-none"
+        />
+      </div>
     </div>
   );
 }

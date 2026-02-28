@@ -102,7 +102,7 @@ export const HeroSection = ({
             whileTap={{ scale: 0.98 }}
             type="submit"
             disabled={!slug.trim()}
-            className="h-14 rounded-xl border border-accent bg-accent px-8 py-4 font-bold text-black text-sm tracking-wide transition-all hover:border-accent-hover hover:bg-accent-hover hover:shadow-[0_0_20px_rgba(225,255,0,0.3)] disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:scale-100 disabled:hover:shadow-none sm:h-auto"
+            className="h-14 rounded-xl border border-accent bg-accent px-8 py-4 font-bold text-black text-sm tracking-wide transition-all hover:border-accent-hover hover:bg-accent-hover hover:shadow-[0_0_20px_rgba(225,255,0,0.3)] disabled:cursor-not-allowed disabled:brightness-50 disabled:hover:scale-100 disabled:hover:shadow-none sm:h-auto"
           >
             Create
           </motion.button>

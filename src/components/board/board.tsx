@@ -6,9 +6,11 @@ import { useCallback, useRef, useState } from "react";
 import { AddColumn } from "@/components/board/add-column";
 import { BoardToolbar } from "@/components/board/board-toolbar";
 import { Column } from "@/components/board/column";
+import { MobileBoard } from "@/components/board/mobile-board";
 import { TaskModal } from "@/components/board/task-modal";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { useBoard } from "@/hooks/use-board";
+import { useDevice } from "@/hooks/use-device";
 import { usePresence } from "@/hooks/use-presence";
 import { useRealtime } from "@/hooks/use-realtime";
 import { exportBoard } from "@/lib/export";
@@ -23,6 +25,7 @@ interface BoardProps {
 
 export function Board({ slug, initialBoard, initialColumns }: BoardProps) {
   const router = useRouter();
+  const { isMobile, isReady } = useDevice();
 
   // Ref to hold refreshFromDB - avoids circular dependency between hooks
   const refreshRef = useRef<(() => Promise<void>) | undefined>(undefined);
@@ -71,7 +74,7 @@ export function Board({ slug, initialBoard, initialColumns }: BoardProps) {
   // Delete column confirmation
   const [deletingColumnId, setDeletingColumnId] = useState<string | null>(null);
 
-  // Drag & drop handler
+  // Drag & drop handler (desktop only)
   const onDragEnd = useCallback(
     (result: DropResult) => {
       const { source, destination } = result;
@@ -146,28 +149,49 @@ export function Board({ slug, initialBoard, initialColumns }: BoardProps) {
         onImport={handleImport}
       />
 
-      <DragDropContext onDragEnd={onDragEnd}>
-        <div className="board-scroll flex flex-1 gap-4 overflow-x-auto p-4 md:p-6">
-          {columns.map((column, index) => (
-            <Column
-              key={column.id}
-              column={column}
-              canDelete={columns.length > 1}
-              canShiftLeft={index > 0}
-              canShiftRight={index < columns.length - 1}
-              onRenameColumn={renameColumn}
-              onToggleCollapse={toggleColumnCollapse}
-              onDeleteColumn={(colId) => setDeletingColumnId(colId)}
-              onShiftLeft={() => moveColumn(index, index - 1)}
-              onShiftRight={() => moveColumn(index, index + 1)}
-              onAddTask={addTask}
-              onEditTask={(task) => setEditingTask(task)}
-              onDeleteTask={removeTask}
-            />
-          ))}
-          <AddColumn onAdd={() => addColumn()} />
+      {!isReady ? (
+        /* ── Loading: device detection in progress ── */
+        <div className="flex flex-1 items-center justify-center">
+          <div className="board-spinner" />
         </div>
-      </DragDropContext>
+      ) : isMobile ? (
+        /* ── Mobile: single-column view ── */
+        <MobileBoard
+          columns={columns}
+          onAddColumn={() => addColumn()}
+          onRenameColumn={renameColumn}
+          onShiftColumn={moveColumn}
+          onAddTask={addTask}
+          onEditTask={(task) => setEditingTask(task)}
+          onDeleteTask={removeTask}
+          onMoveTask={moveTask}
+          onRequestDeleteColumn={(colId) => setDeletingColumnId(colId)}
+        />
+      ) : (
+        /* ── Desktop: horizontal scrolling multi-column view ── */
+        <DragDropContext onDragEnd={onDragEnd}>
+          <div className="board-scroll flex flex-1 gap-4 overflow-x-auto p-4 md:p-6">
+            {columns.map((column, index) => (
+              <Column
+                key={column.id}
+                column={column}
+                canDelete={columns.length > 1}
+                canShiftLeft={index > 0}
+                canShiftRight={index < columns.length - 1}
+                onRenameColumn={renameColumn}
+                onToggleCollapse={toggleColumnCollapse}
+                onDeleteColumn={(colId) => setDeletingColumnId(colId)}
+                onShiftLeft={() => moveColumn(index, index - 1)}
+                onShiftRight={() => moveColumn(index, index + 1)}
+                onAddTask={addTask}
+                onEditTask={(task) => setEditingTask(task)}
+                onDeleteTask={removeTask}
+              />
+            ))}
+            <AddColumn onAdd={() => addColumn()} />
+          </div>
+        </DragDropContext>
+      )}
 
       {/* Task edit modal */}
       <TaskModal

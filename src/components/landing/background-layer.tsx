@@ -15,18 +15,18 @@ export const BackgroundLayer = ({
 
   return (
     <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
-      <div className="mask-[radial-gradient(ellipse_80%_80%_at_50%_0%,#000_70%,transparent_100%)] absolute inset-0 bg-[linear-gradient(to_right,#4f4f4f10_1px,transparent_1px),linear-gradient(to_bottom,#4f4f4f10_1px,transparent_1px)] bg-size-[4rem_4rem]" />
+      <div className="mask-[radial-gradient(ellipse_80%_80%_at_50%_0%,#000_70%,transparent_100%)] absolute inset-0 bg-[linear-gradient(to_right,#4f4f4f40_1px,transparent_1px),linear-gradient(to_bottom,#4f4f4f40_1px,transparent_1px)] bg-size-[4rem_4rem]" />
 
       <motion.div
         style={{ rotate: bgRotate1, y: bgY }}
-        className="absolute top-[-10%] left-[-10%] h-[80vw] w-[80vw] rounded-full border border-neutral-800/50 opacity-80 blur-[2px]"
+        className="absolute top-[-10%] left-[-10%] h-[80vw] w-[80vw] rounded-full border border-neutral-800 blur-[2px]"
       />
       <motion.div
         style={{
           rotate: bgRotate2,
           y: bottomBgY,
         }}
-        className="absolute right-[-10%] bottom-[-20%] h-[60vw] w-[60vw] rounded-full border border-accent/20 border-dashed opacity-60 blur-[1px]"
+        className="absolute right-[-10%] bottom-[-20%] h-[60vw] w-[60vw] rounded-full border border-accent/40 border-dashed blur-[1px]"
       />
 
       {/* Glowing Orbs */}
