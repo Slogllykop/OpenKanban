@@ -6,6 +6,7 @@ import { motion } from "motion/react";
 import { AddTask } from "@/components/board/add-task";
 import { ColumnHeader } from "@/components/board/column-header";
 import { TaskCard } from "@/components/board/task-card";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import type { ColumnWithTasks, Task } from "@/lib/types";
 
 const columnTransition = {
@@ -92,7 +93,7 @@ export function Column({
       layoutId={column.id}
       transition={columnTransition}
       style={willChangeTransform}
-      className="z-10 flex h-full w-[280px] min-w-[280px] shrink-0 flex-col rounded-xl bg-surface-column p-2"
+      className="z-10 flex h-full w-[calc(280px+0.5rem)] min-w-[280px] shrink-0 flex-col rounded-xl bg-surface-column p-2"
     >
       <motion.div layout="position">
         <ColumnHeader
@@ -109,32 +110,36 @@ export function Column({
         />
       </motion.div>
 
-      <Droppable
-        droppableId={column.id}
-        type="task"
-        isDropDisabled={column.is_collapsed}
-      >
-        {(provided, snapshot) => (
-          <div
-            ref={provided.innerRef}
-            {...provided.droppableProps}
-            className={`flex flex-1 flex-col gap-2 overflow-y-auto rounded-lg p-1 transition-colors ${
-              snapshot.isDraggingOver ? "bg-accent-muted" : ""
-            }`}
-          >
-            {column.tasks.map((task, index) => (
-              <TaskCard
-                key={task.id}
-                task={task}
-                index={index}
-                onEdit={onEditTask}
-                onDelete={onDeleteTask}
-              />
-            ))}
-            {provided.placeholder}
-          </div>
-        )}
-      </Droppable>
+      <ScrollArea className="min-h-0 flex-1 pr-2">
+        <Droppable
+          droppableId={column.id}
+          type="task"
+          isDropDisabled={column.is_collapsed}
+        >
+          {(provided, snapshot) => (
+            <div
+              ref={provided.innerRef}
+              {...provided.droppableProps}
+              className={`flex min-h-full flex-col gap-2 rounded-lg p-1 transition-colors ${
+                snapshot.isDraggingOver ? "bg-accent-muted" : ""
+              }`}
+            >
+              {column.tasks.map((task, index) => (
+                <TaskCard
+                  key={task.id}
+                  task={task}
+                  index={index}
+                  onEdit={onEditTask}
+                  onDelete={onDeleteTask}
+                />
+              ))}
+              {provided.placeholder}
+            </div>
+          )}
+        </Droppable>
+
+        {/* <ScrollBar className="w-2" /> */}
+      </ScrollArea>
 
       <div className="mt-1 pt-1">
         <AddTask onAdd={(title) => onAddTask(column.id, title)} />
