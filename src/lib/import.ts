@@ -42,7 +42,7 @@ export async function importBoard(
     // Clear existing columns (cascade deletes tasks)
     const existingCols = await getColumns(supabase, board.id);
     for (const col of existingCols) {
-      await deleteColumn(supabase, col.id);
+      await deleteColumn(supabase, slug, col.id);
     }
   } else {
     board = await createBoard(supabase, slug);

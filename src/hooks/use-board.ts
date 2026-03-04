@@ -141,10 +141,10 @@ export function useBoard({
   // -----------------------------------------------------------------------
   const addColumn = useCallback(
     async (title = "Untitled") => {
-      setIsLoading(true);
       const snapshot = columns;
       try {
         if (!isPersistedRef.current) {
+          setIsLoading(true);
           const newLocalCol = makeLocalColumn(title, columns.length);
           const currentSnapshot = [...columns, newLocalCol];
           const { board: newBoard, idMap } =
@@ -157,19 +157,31 @@ export function useBoard({
             }),
           );
           onMutationRef.current?.();
+          setIsLoading(false);
           return;
         }
 
         const currentBoard = boardRef.current;
         if (!currentBoard) return;
 
+        // Optimistic: add a temp column immediately
         const position = columns.length;
-        const newCol = await createColumn(supabase, {
+        const tempCol = makeLocalColumn(title, position);
+        setColumns((prev) => [...prev, tempCol]);
+
+        // Persist in background, then reconcile
+        const dbCol = await createColumn(supabase, {
           board_id: currentBoard.id,
           title,
           position,
         });
-        setColumns((prev) => [...prev, { ...newCol, tasks: [] }]);
+        setColumns((prev) =>
+          prev.map((col) =>
+            col.id === tempCol.id
+              ? { ...dbCol, tasks: [], board_id: currentBoard.id }
+              : col,
+          ),
+        );
         onMutationRef.current?.();
       } catch {
         setColumns(snapshot);
@@ -208,7 +220,7 @@ export function useBoard({
           prev.map((col) => (col.id === columnId ? { ...col, title } : col)),
         );
         if (isPersistedRef.current && !columnId.startsWith("local-")) {
-          await updateColumn(supabase, { id: columnId, title });
+          await updateColumn(supabase, slug, { id: columnId, title });
           onMutationRef.current?.();
         }
       } catch {
@@ -218,7 +230,7 @@ export function useBoard({
         setIsLoading(false);
       }
     },
-    [persistBoard, supabase, columns],
+    [persistBoard, supabase, slug, columns],
   );
 
   const toggleColumnCollapse = useCallback(
@@ -231,7 +243,7 @@ export function useBoard({
       );
       if (isPersistedRef.current && !columnId.startsWith("local-")) {
         try {
-          await updateColumn(supabase, { id: columnId, is_collapsed });
+          await updateColumn(supabase, slug, { id: columnId, is_collapsed });
           onMutationRef.current?.();
         } catch {
           setColumns(snapshot);
@@ -239,7 +251,7 @@ export function useBoard({
         }
       }
     },
-    [supabase, columns],
+    [supabase, slug, columns],
   );
 
   const removeColumn = useCallback(
@@ -265,9 +277,9 @@ export function useBoard({
 
       if (isPersistedRef.current) {
         try {
-          await dbDeleteColumn(supabase, columnId);
+          await dbDeleteColumn(supabase, slug, columnId);
           if (colUpdates.length > 0) {
-            await updateColumnPositions(supabase, colUpdates);
+            await updateColumnPositions(supabase, slug, colUpdates);
           }
           onMutationRef.current?.();
         } catch {
@@ -276,7 +288,7 @@ export function useBoard({
         }
       }
     },
-    [columns, supabase],
+    [columns, supabase, slug],
   );
 
   // -----------------------------------------------------------------------
@@ -284,10 +296,10 @@ export function useBoard({
   // -----------------------------------------------------------------------
   const addTask = useCallback(
     async (columnId: string, title: string, priority: Priority = "medium") => {
-      setIsLoading(true);
       const snapshot = columns;
       try {
         if (!isPersistedRef.current) {
+          setIsLoading(true);
           // First task triggers full persistence
           const currentSnapshot = columns;
           const { board: newBoard, idMap } =
@@ -315,6 +327,7 @@ export function useBoard({
             }),
           );
           onMutationRef.current?.();
+          setIsLoading(false);
           return;
         }
 
@@ -346,20 +359,39 @@ export function useBoard({
         const col = columns.find((c) => c.id === columnId);
         const position = col ? col.tasks.length : 0;
 
+        // Optimistic: add a temp task immediately
+        const tempTask: Task = {
+          id: `local-${generateUUID()}`,
+          column_id: targetColumnId,
+          title,
+          description: null,
+          priority,
+          position,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        };
+        setColumns((prev) =>
+          prev.map((c) =>
+            c.id === columnId || c.id === targetColumnId
+              ? { ...c, id: targetColumnId, tasks: [...c.tasks, tempTask] }
+              : c,
+          ),
+        );
+
+        // Persist in background, then reconcile
         const payload: CreateTaskPayload = {
           column_id: targetColumnId,
           title,
           priority,
           position,
         };
-        const newTask = await createTask(supabase, payload);
+        const dbTask = await createTask(supabase, payload);
 
         setColumns((prev) =>
-          prev.map((c) =>
-            c.id === columnId || c.id === targetColumnId
-              ? { ...c, id: targetColumnId, tasks: [...c.tasks, newTask] }
-              : c,
-          ),
+          prev.map((c) => ({
+            ...c,
+            tasks: c.tasks.map((t) => (t.id === tempTask.id ? dbTask : t)),
+          })),
         );
         onMutationRef.current?.();
       } catch {
@@ -391,14 +423,14 @@ export function useBoard({
         })),
       );
       try {
-        await updateTask(supabase, { id: taskId, ...updates });
+        await updateTask(supabase, slug, { id: taskId, ...updates });
         onMutationRef.current?.();
       } catch {
         setColumns(snapshot);
         showMutationError("update task");
       }
     },
-    [supabase, columns],
+    [supabase, slug, columns],
   );
 
   const removeTask = useCallback(
@@ -413,14 +445,14 @@ export function useBoard({
         })),
       );
       try {
-        await dbDeleteTask(supabase, taskId);
+        await dbDeleteTask(supabase, slug, taskId);
         onMutationRef.current?.();
       } catch {
         setColumns(snapshot);
         showMutationError("delete task");
       }
     },
-    [supabase, columns],
+    [supabase, slug, columns],
   );
 
   // -----------------------------------------------------------------------
@@ -475,7 +507,7 @@ export function useBoard({
 
       if (isPersistedRef.current && tasksToUpdate.length > 0) {
         try {
-          await updateTaskPositions(supabase, tasksToUpdate);
+          await updateTaskPositions(supabase, slug, tasksToUpdate);
           onMutationRef.current?.();
         } catch {
           setColumns(snapshot);
@@ -483,7 +515,7 @@ export function useBoard({
         }
       }
     },
-    [supabase, columns],
+    [supabase, slug, columns],
   );
 
   const moveColumn = useCallback(
@@ -509,7 +541,7 @@ export function useBoard({
 
       if (isPersistedRef.current && colUpdates.length > 0) {
         try {
-          await updateColumnPositions(supabase, colUpdates);
+          await updateColumnPositions(supabase, slug, colUpdates);
           onMutationRef.current?.();
         } catch {
           setColumns(snapshot);
@@ -517,7 +549,7 @@ export function useBoard({
         }
       }
     },
-    [supabase, columns],
+    [supabase, slug, columns],
   );
 
   // -----------------------------------------------------------------------
@@ -526,7 +558,7 @@ export function useBoard({
   const removeBoard = useCallback(async () => {
     if (boardRef.current && isPersistedRef.current) {
       try {
-        await dbDeleteBoard(supabase, boardRef.current.id);
+        await dbDeleteBoard(supabase, slug, boardRef.current.id);
       } catch {
         showMutationError("delete board");
         return;
@@ -536,7 +568,7 @@ export function useBoard({
     isPersistedRef.current = false;
     setBoard(null);
     setColumns([getInitialLocalColumn()]);
-  }, [supabase]);
+  }, [supabase, slug]);
 
   // -----------------------------------------------------------------------
   // State setter (for realtime updates from other clients)

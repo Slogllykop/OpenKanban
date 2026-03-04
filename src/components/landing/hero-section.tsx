@@ -1,3 +1,4 @@
+import { IconDice5 } from "@tabler/icons-react";
 import {
   AnimatePresence,
   type MotionValue,
@@ -7,6 +8,48 @@ import {
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Logo } from "@/components/ui/logo";
+
+const ADJECTIVES = [
+  "vibrant",
+  "cosmic",
+  "silent",
+  "rapid",
+  "golden",
+  "frozen",
+  "hidden",
+  "fierce",
+  "lucid",
+  "nimble",
+  "azure",
+  "crimson",
+  "stellar",
+  "phantom",
+  "primal",
+];
+
+const NOUNS = [
+  "nebula",
+  "falcon",
+  "aurora",
+  "summit",
+  "cipher",
+  "vortex",
+  "horizon",
+  "tempest",
+  "beacon",
+  "quartz",
+  "zenith",
+  "cascade",
+  "ember",
+  "orchid",
+  "drift",
+];
+
+function generateRandomSlug(): string {
+  const pick = (arr: string[]) => arr[Math.floor(Math.random() * arr.length)];
+  const num = Math.floor(1000 + Math.random() * 9000);
+  return `${pick(ADJECTIVES)}-${pick(NOUNS)}-${num}`;
+}
 
 export const HeroSection = ({
   scrollYProgress,
@@ -101,8 +144,17 @@ export const HeroSection = ({
                 onChange={(e) => setSlug(e.target.value)}
                 placeholder="super-secret-board"
                 disabled={isNavigating}
-                className="min-w-0 flex-1 bg-transparent py-4 pr-4 pl-1 text-sm text-white placeholder-neutral-700 outline-none disabled:opacity-50 sm:text-base"
+                className="min-w-0 flex-1 bg-transparent py-4 pr-1 pl-1 text-sm text-white placeholder-neutral-700 outline-none disabled:opacity-50 sm:text-base"
               />
+              <button
+                type="button"
+                onClick={() => setSlug(generateRandomSlug())}
+                disabled={isNavigating}
+                title="Generate random URL"
+                className="shrink-0 p-2 pr-3 text-neutral-500 transition-colors hover:text-accent disabled:opacity-50"
+              >
+                <IconDice5 size={18} />
+              </button>
             </div>
           </div>
           <motion.button

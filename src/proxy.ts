@@ -1,4 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server";
+import { getBoardVisitLimiter } from "@/lib/ratelimit";
 
 /**
  * Sanitize a URL slug:
@@ -29,7 +30,7 @@ function sanitizeSlug(raw: string): string {
       .toLowerCase()
       .replace(/[\s_]/g, "-")
       // biome-ignore lint/complexity/noUselessEscapeInRegex: Important for brakcets
-      .replace(/[?!@#$%^&*()+=_\[\]{};':",.<>\/]/g, "-")
+      .replace(/[?!@#$%^&*()+=_\[\]{};':",./<>\/]/g, "-")
       .replace(/[^a-z0-9-]/g, "-")
       .replace(/-{2,}/g, "-")
       .replace(/^-+|-+$/g, "")
@@ -43,9 +44,14 @@ const IGNORED_PREFIXES = [
   "/favicon.ico",
   "/og.png",
   "/OpenKanban-Logo.png",
+  "/rate-limit",
+  "/privacy",
+  "/terms",
+  "/robots.txt",
+  "/sitemap.xml",
 ];
 
-export function proxy(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname, search, hash } = request.nextUrl;
 
   // Skip root and ignored paths
@@ -74,6 +80,18 @@ export function proxy(request: NextRequest) {
     newUrl.search = "";
     newUrl.hash = "";
     return NextResponse.redirect(newUrl, 308);
+  }
+
+  // Rate limit board page visits by IP
+  const limiter = getBoardVisitLimiter();
+  if (limiter) {
+    const ip =
+      request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
+      "anonymous";
+    const { success } = await limiter.limit(ip);
+    if (!success) {
+      return NextResponse.redirect(new URL("/rate-limit", request.url));
+    }
   }
 
   return NextResponse.next();

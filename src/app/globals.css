@@ -152,7 +152,7 @@ button {
   }
 }
 
-/* Board loading spinner — shown while device type is being determined */
+/* Board loading spinner - shown while device type is being determined */
 .board-spinner {
   width: 32px;
   height: 32px;

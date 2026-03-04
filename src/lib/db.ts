@@ -9,6 +9,13 @@ import type {
   UpdateColumnPayload,
   UpdateTaskPayload,
 } from "@/lib/types";
+import {
+  createBoardSchema,
+  createColumnSchema,
+  createTaskSchema,
+  updateColumnSchema,
+  updateTaskSchema,
+} from "@/lib/validations";
 
 /** Helper to throw proper Error objects from Supabase errors */
 function handleSupabaseError(error: unknown): never {
@@ -45,6 +52,8 @@ export async function createBoard(
   supabase: SupabaseClient,
   slug: string,
 ): Promise<Board> {
+  createBoardSchema.parse({ slug });
+
   const response = await supabase
     .rpc("create_board_p", { p_slug: slug })
     .single();
@@ -56,9 +65,13 @@ export async function createBoard(
 /** Delete a board and all its columns/tasks (cascade) */
 export async function deleteBoard(
   supabase: SupabaseClient,
+  slug: string,
   boardId: string,
 ): Promise<void> {
-  const { error } = await supabase.rpc("delete_board_p", { p_id: boardId });
+  const { error } = await supabase.rpc("delete_board_p", {
+    p_slug: slug,
+    p_id: boardId,
+  });
   if (error) handleSupabaseError(error);
 }
 
@@ -84,6 +97,8 @@ export async function createColumn(
   supabase: SupabaseClient,
   payload: CreateColumnPayload,
 ): Promise<Column> {
+  createColumnSchema.parse(payload);
+
   const response = await supabase
     .rpc("create_column_p", {
       p_board_id: payload.board_id,
@@ -99,11 +114,15 @@ export async function createColumn(
 /** Update a column (title, position, is_collapsed) */
 export async function updateColumn(
   supabase: SupabaseClient,
+  slug: string,
   payload: UpdateColumnPayload,
 ): Promise<Column> {
+  updateColumnSchema.parse(payload);
+
   const { id, ...updates } = payload;
   const response = await supabase
     .rpc("update_column_p", {
+      p_slug: slug,
       p_id: id,
       p_title: updates.title ?? null,
       p_position: updates.position ?? null,
@@ -118,15 +137,20 @@ export async function updateColumn(
 /** Delete a column (cascades to tasks) */
 export async function deleteColumn(
   supabase: SupabaseClient,
+  slug: string,
   columnId: string,
 ): Promise<void> {
-  const { error } = await supabase.rpc("delete_column_p", { p_id: columnId });
+  const { error } = await supabase.rpc("delete_column_p", {
+    p_slug: slug,
+    p_id: columnId,
+  });
   if (error) handleSupabaseError(error);
 }
 
 /** Batch update column positions */
 export async function updateColumnPositions(
   supabase: SupabaseClient,
+  slug: string,
   updates: Column[],
 ): Promise<void> {
   if (updates.length === 0) return;
@@ -143,6 +167,7 @@ export async function updateColumnPositions(
   }));
 
   const { error } = await supabase.rpc("update_column_positions_p", {
+    p_slug: slug,
     p_updates: payload,
   });
   if (error) handleSupabaseError(error);
@@ -170,6 +195,8 @@ export async function createTask(
   supabase: SupabaseClient,
   payload: CreateTaskPayload,
 ): Promise<Task> {
+  createTaskSchema.parse(payload);
+
   const response = await supabase
     .rpc("create_task_p", {
       p_column_id: payload.column_id,
@@ -187,11 +214,15 @@ export async function createTask(
 /** Update a task (title, description, priority, column_id, position) */
 export async function updateTask(
   supabase: SupabaseClient,
+  slug: string,
   payload: UpdateTaskPayload,
 ): Promise<Task> {
+  updateTaskSchema.parse(payload);
+
   const { id, ...updates } = payload;
   const response = await supabase
     .rpc("update_task_p", {
+      p_slug: slug,
       p_id: id,
       p_title: updates.title ?? null,
       p_description: updates.description ?? null,
@@ -208,15 +239,20 @@ export async function updateTask(
 /** Delete a task */
 export async function deleteTask(
   supabase: SupabaseClient,
+  slug: string,
   taskId: string,
 ): Promise<void> {
-  const { error } = await supabase.rpc("delete_task_p", { p_id: taskId });
+  const { error } = await supabase.rpc("delete_task_p", {
+    p_slug: slug,
+    p_id: taskId,
+  });
   if (error) handleSupabaseError(error);
 }
 
 /** Batch update task positions and/or column assignments */
 export async function updateTaskPositions(
   supabase: SupabaseClient,
+  slug: string,
   updates: Task[],
 ): Promise<void> {
   if (updates.length === 0) return;
@@ -236,6 +272,7 @@ export async function updateTaskPositions(
   }));
 
   const { error } = await supabase.rpc("update_task_positions_p", {
+    p_slug: slug,
     p_updates: payload,
   });
   if (error) handleSupabaseError(error);
