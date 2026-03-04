@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { AddColumn } from "@/components/board/add-column";
 import { BoardToolbar } from "@/components/board/board-toolbar";
 import { Column } from "@/components/board/column";
+import { KeyboardShortcuts } from "@/components/board/keyboard-shortcuts";
 import { MobileBoard } from "@/components/board/mobile-board";
 import { TaskModal } from "@/components/board/task-modal";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
@@ -222,6 +223,7 @@ export function Board({ slug, initialBoard, initialColumns }: BoardProps) {
               <AddColumn onAdd={() => addColumn()} />
             </div>
           </LayoutGroup>
+          <KeyboardShortcuts />
         </DragDropContext>
       )}
 
