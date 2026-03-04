@@ -1,4 +1,4 @@
-import { Ratelimit } from "@upstash/ratelimit";
+import { type Duration, Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
 
 // ---------------------------------------------------------------------------
@@ -24,6 +24,8 @@ function getRedis(): Redis | null {
 
 /** Board page visits - prevents mass slug probing. 30 req / 60 s per IP. */
 let boardVisitLimiter: Ratelimit | null = null;
+const MAX_REQUESTS: number = 30;
+const INTERVAL: Duration = "60s";
 
 export function getBoardVisitLimiter(): Ratelimit | null {
   if (boardVisitLimiter) return boardVisitLimiter;
@@ -33,7 +35,7 @@ export function getBoardVisitLimiter(): Ratelimit | null {
 
   boardVisitLimiter = new Ratelimit({
     redis: r,
-    limiter: Ratelimit.slidingWindow(30, "60s"),
+    limiter: Ratelimit.slidingWindow(MAX_REQUESTS, INTERVAL),
     prefix: "rl:board-visit",
   });
   return boardVisitLimiter;

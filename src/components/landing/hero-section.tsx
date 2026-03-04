@@ -8,48 +8,7 @@ import {
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Logo } from "@/components/ui/logo";
-
-const ADJECTIVES = [
-  "vibrant",
-  "cosmic",
-  "silent",
-  "rapid",
-  "golden",
-  "frozen",
-  "hidden",
-  "fierce",
-  "lucid",
-  "nimble",
-  "azure",
-  "crimson",
-  "stellar",
-  "phantom",
-  "primal",
-];
-
-const NOUNS = [
-  "nebula",
-  "falcon",
-  "aurora",
-  "summit",
-  "cipher",
-  "vortex",
-  "horizon",
-  "tempest",
-  "beacon",
-  "quartz",
-  "zenith",
-  "cascade",
-  "ember",
-  "orchid",
-  "drift",
-];
-
-function generateRandomSlug(): string {
-  const pick = (arr: string[]) => arr[Math.floor(Math.random() * arr.length)];
-  const num = Math.floor(1000 + Math.random() * 9000);
-  return `${pick(ADJECTIVES)}-${pick(NOUNS)}-${num}`;
-}
+import { generateRandomSlug } from "@/lib/utils";
 
 export const HeroSection = ({
   scrollYProgress,

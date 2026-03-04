@@ -1,5 +1,6 @@
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
+import { ADJECTIVES, NOUNS } from "@/lib/constants";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -48,4 +49,16 @@ export function getChannelTopic(prefix: string, slug: string): string {
   // Fit prefix, truncated slug, separator, and hex hash under 200 chars
   const truncateLength = 200 - prefix.length - hexHash.length - 3;
   return `${prefix}:${slug.slice(0, Math.max(0, truncateLength))}-${hexHash}`;
+}
+
+/**
+ * Generates a random human-readable slug consisting of an adjective, a noun, and a 4-digit number.
+ * Useful for creating unique, memorable board identifiers.
+ *
+ * @returns A string in the format "adjective-noun-1234".
+ */
+export function generateRandomSlug(): string {
+  const pick = (arr: string[]) => arr[Math.floor(Math.random() * arr.length)];
+  const num = Math.floor(1000 + Math.random() * 9000);
+  return `${pick(ADJECTIVES)}-${pick(NOUNS)}-${num}`;
 }
