@@ -27,3 +27,25 @@ export function generateUUID(): string {
   );
   return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
 }
+
+/**
+ * Compute a length-safe topic for Supabase Realtime channels.
+ * Supabase has a strict limit of 255 characters per topic (including internal prefixes).
+ * For long slugs, we truncate and append a short deterministic hash
+ * to maintain uniqueness without exceeding the limit. We cap at 200 to be safe.
+ */
+export function getChannelTopic(prefix: string, slug: string): string {
+  const topic = `${prefix}:${slug}`;
+  if (topic.length <= 200) return topic;
+
+  // Simple djb2 hash to keep ID unique after truncation
+  let hash = 5381;
+  for (let i = 0; i < slug.length; i++) {
+    hash = (hash * 33) ^ slug.charCodeAt(i);
+  }
+  const hexHash = (hash >>> 0).toString(16);
+
+  // Fit prefix, truncated slug, separator, and hex hash under 200 chars
+  const truncateLength = 200 - prefix.length - hexHash.length - 3;
+  return `${prefix}:${slug.slice(0, Math.max(0, truncateLength))}-${hexHash}`;
+}

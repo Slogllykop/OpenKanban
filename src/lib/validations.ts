@@ -7,7 +7,6 @@ import { z } from "zod/v4";
 export const slugSchema = z
   .string()
   .min(1, "Slug is required")
-  .max(100, "Slug must be 100 characters or fewer")
   .regex(
     /^[a-z0-9-]+$/,
     "Slug may only contain lowercase letters, numbers, and dashes",

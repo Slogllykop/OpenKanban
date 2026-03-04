@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
 import type { WebSocketStatus } from "@/lib/types";
-import { generateUUID } from "@/lib/utils";
+import { generateUUID, getChannelTopic } from "@/lib/utils";
 
 /**
  * Tracks the number of viewers on a board using Supabase Presence.
@@ -20,7 +20,8 @@ export function usePresence(slug: string) {
 
   useEffect(() => {
     const supabase = createClient();
-    const ch = supabase.channel(`board:${slug}`, {
+    const topic = getChannelTopic("board", slug);
+    const ch = supabase.channel(topic, {
       config: { presence: { key: generateUUID() } },
     });
 

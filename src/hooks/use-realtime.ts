@@ -5,6 +5,7 @@ import { useCallback, useEffect, useRef } from "react";
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
 import type { WebSocketStatus } from "@/lib/types";
+import { getChannelTopic } from "@/lib/utils";
 
 interface UseRealtimeOptions {
   slug: string;
@@ -32,7 +33,8 @@ export function useRealtime({ slug, onSync }: UseRealtimeOptions) {
 
   useEffect(() => {
     const supabase = createClient();
-    const ch = supabase.channel(`board-sync:${slug}`);
+    const topic = getChannelTopic("board-sync", slug);
+    const ch = supabase.channel(topic);
 
     ch.on("broadcast", { event: "sync" }, () => {
       onSyncRef.current();
