@@ -141,14 +141,25 @@ export function useBoard({
   // -----------------------------------------------------------------------
   const addColumn = useCallback(
     async (title = "Untitled") => {
-      if (!isPersistedRef.current) {
-        setColumns((prev) => [...prev, makeLocalColumn(title, prev.length)]);
-        return;
-      }
-
-      const snapshot = columns;
       setIsLoading(true);
+      const snapshot = columns;
       try {
+        if (!isPersistedRef.current) {
+          const newLocalCol = makeLocalColumn(title, columns.length);
+          const currentSnapshot = [...columns, newLocalCol];
+          const { board: newBoard, idMap } =
+            await persistBoard(currentSnapshot);
+
+          setColumns(
+            currentSnapshot.map((col) => {
+              const newId = idMap.get(col.id) ?? col.id;
+              return { ...col, id: newId, board_id: newBoard.id };
+            }),
+          );
+          onMutationRef.current?.();
+          return;
+        }
+
         const currentBoard = boardRef.current;
         if (!currentBoard) return;
 
@@ -167,26 +178,47 @@ export function useBoard({
         setIsLoading(false);
       }
     },
-    [supabase, columns],
+    [persistBoard, supabase, columns],
   );
 
   const renameColumn = useCallback(
     async (columnId: string, title: string) => {
       const snapshot = columns;
-      setColumns((prev) =>
-        prev.map((col) => (col.id === columnId ? { ...col, title } : col)),
-      );
-      if (isPersistedRef.current && !columnId.startsWith("local-")) {
-        try {
+      try {
+        if (!isPersistedRef.current) {
+          setIsLoading(true);
+          const currentSnapshot = columns.map((col) =>
+            col.id === columnId ? { ...col, title } : col,
+          );
+
+          const { board: newBoard, idMap } =
+            await persistBoard(currentSnapshot);
+
+          setColumns(
+            currentSnapshot.map((col) => {
+              const newId = idMap.get(col.id) ?? col.id;
+              return { ...col, id: newId, board_id: newBoard.id };
+            }),
+          );
+          onMutationRef.current?.();
+          return;
+        }
+
+        setColumns((prev) =>
+          prev.map((col) => (col.id === columnId ? { ...col, title } : col)),
+        );
+        if (isPersistedRef.current && !columnId.startsWith("local-")) {
           await updateColumn(supabase, { id: columnId, title });
           onMutationRef.current?.();
-        } catch {
-          setColumns(snapshot);
-          showMutationError("rename column");
         }
+      } catch {
+        setColumns(snapshot);
+        showMutationError("rename column");
+      } finally {
+        setIsLoading(false);
       }
     },
-    [supabase, columns],
+    [persistBoard, supabase, columns],
   );
 
   const toggleColumnCollapse = useCallback(
