@@ -1,5 +1,7 @@
 export type Priority = "low" | "medium" | "high" | "urgent";
 
+export type WebSocketStatus = "SUBSCRIBED" | "CHANNEL_ERROR" | "TIMED_OUT";
+
 export interface Board {
   id: string;
   slug: string;

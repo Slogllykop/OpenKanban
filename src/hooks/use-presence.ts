@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
+import type { WebSocketStatus } from "@/lib/types";
 import { generateUUID } from "@/lib/utils";
 
 /**
@@ -29,7 +30,7 @@ export function usePresence(slug: string) {
       setViewerCount(Math.max(count, 1));
     });
 
-    ch.subscribe(async (status) => {
+    ch.subscribe(async (status: WebSocketStatus) => {
       if (status === "SUBSCRIBED") {
         setIsConnected(true);
         hasShownErrorRef.current = false;

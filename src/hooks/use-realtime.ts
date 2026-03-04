@@ -4,6 +4,7 @@ import type { RealtimeChannel } from "@supabase/supabase-js";
 import { useCallback, useEffect, useRef } from "react";
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
+import type { WebSocketStatus } from "@/lib/types";
 
 interface UseRealtimeOptions {
   slug: string;
@@ -37,7 +38,7 @@ export function useRealtime({ slug, onSync }: UseRealtimeOptions) {
       onSyncRef.current();
     });
 
-    ch.subscribe((status) => {
+    ch.subscribe((status: WebSocketStatus) => {
       if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
         if (!hasShownErrorRef.current) {
           hasShownErrorRef.current = true;
