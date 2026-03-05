@@ -2,7 +2,6 @@
 
 import { useScroll } from "motion/react";
 import { useRef } from "react";
-import { BackgroundLayer } from "@/components/landing/background-layer";
 import { CallToAction } from "@/components/landing/call-to-action";
 import { Footer } from "@/components/landing/footer";
 import { HeroSection } from "@/components/landing/hero-section";
@@ -23,7 +22,6 @@ export default function Home() {
       className="relative overflow-hidden bg-black font-sans text-white selection:bg-accent selection:text-black"
     >
       <ScrollProgress progress={scrollYProgress} />
-      <BackgroundLayer scrollYProgress={scrollYProgress} />
       <HeroSection scrollYProgress={scrollYProgress} />
 
       {/* Extended Story Sections Container */}

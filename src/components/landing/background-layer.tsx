@@ -1,24 +1,39 @@
-import { type MotionValue, motion, useTransform } from "motion/react";
+import { ChromaFlow, Shader, Swirl } from "shaders/react";
+import GrainOverlay from "./gradient-overlay";
 
-export const BackgroundLayer = ({
-  scrollYProgress,
-}: {
-  scrollYProgress: MotionValue<number>;
-}) => {
-  const orbY1 = useTransform(scrollYProgress, [0, 1], [0, 1000]);
-  const orbY2 = useTransform(scrollYProgress, [0, 1], [0, -800]);
-
+export const BackgroundLayer = () => {
   return (
-    <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
-      {/* Glowing Orbs */}
-      <motion.div
-        style={{ y: orbY1 }}
-        className="absolute top-[20%] left-[10%] h-[30vw] w-[30vw] rounded-full bg-accent/3 blur-[100px]"
-      />
-      <motion.div
-        style={{ y: orbY2 }}
-        className="absolute top-[60%] right-[10%] h-[40vw] w-[40vw] rounded-full bg-white/4 blur-[120px]"
-      />
-    </div>
+    <>
+      <GrainOverlay />
+      <Shader
+        className="pointer-events-none absolute inset-0 z-0"
+        style={{
+          maskImage:
+            "linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,0.6) 50%, rgba(0,0,0,0) 100%)",
+          WebkitMaskImage:
+            "linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,0.6) 50%, rgba(0,0,0,0) 100%)",
+        }}
+      >
+        <Swirl
+          colorA="#000"
+          colorB="#e1ff0015"
+          speed={1}
+          detail={0.8}
+          blend={50}
+        />
+        <ChromaFlow
+          baseColor="#e1ff00"
+          upColor="#ff3300"
+          downColor="#d1d1d1"
+          leftColor="#e19136"
+          rightColor="#e19136"
+          intensity={0.9}
+          radius={1.8}
+          momentum={25}
+          maskType="alpha"
+          opacity={0.97}
+        />
+      </Shader>
+    </>
   );
 };

@@ -7,9 +7,9 @@ import {
 } from "motion/react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { DotGridShader } from "@/components/landing/dot-grid-shader";
 import { Logo } from "@/components/ui/logo";
 import { generateRandomSlug } from "@/lib/utils";
+import { BackgroundLayer } from "./background-layer";
 
 export const HeroSection = ({
   scrollYProgress,
@@ -34,7 +34,7 @@ export const HeroSection = ({
 
   return (
     <div className="pointer-events-auto sticky top-0 z-10 flex h-[80vh] flex-col items-center justify-center overflow-hidden px-6 lg:h-[90dvh]">
-      <DotGridShader />
+      <BackgroundLayer />
       <motion.div
         style={{ y: heroY, opacity: heroOpacity, scale: heroScale }}
         className="relative flex w-full max-w-5xl flex-col items-center text-center"
