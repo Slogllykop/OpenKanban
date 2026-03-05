@@ -1,6 +1,11 @@
-export type Priority = "low" | "medium" | "high" | "urgent";
-
 export type WebSocketStatus = "SUBSCRIBED" | "CHANNEL_ERROR" | "TIMED_OUT";
+
+export type TShortcut = {
+  keys: string[];
+  action: string;
+};
+
+export type Priority = "low" | "medium" | "high" | "urgent";
 
 export interface Board {
   id: string;

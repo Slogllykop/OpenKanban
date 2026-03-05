@@ -3,19 +3,7 @@
 import { IconKeyboard, IconX } from "@tabler/icons-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useState } from "react";
-
-type TShortcut = {
-  keys: string[];
-  action: string;
-};
-
-const shortcuts: TShortcut[] = [
-  { keys: ["Tab"], action: "Focus task (yellow border)" },
-  { keys: ["Space"], action: "Lift or drop task" },
-  { keys: ["🡹", "🡻", "🡸", "🡺"], action: "Move task" },
-  { keys: ["Esc"], action: "Cancel drag" },
-  { keys: ["Enter"], action: "Edit task" },
-];
+import { SHORTCUTS } from "@/lib/constants";
 
 export function KeyboardShortcuts() {
   const [isOpen, setIsOpen] = useState(false);
@@ -56,7 +44,7 @@ export function KeyboardShortcuts() {
               </h3>
             </div>
             <ul className="flex flex-col gap-3">
-              {shortcuts.map((shortcut) => (
+              {SHORTCUTS.map((shortcut) => (
                 <li
                   key={shortcut.action}
                   className="flex items-center justify-between"

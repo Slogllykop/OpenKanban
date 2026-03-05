@@ -61,7 +61,7 @@ export function TaskCard({ task, index, onEdit, onDelete }: TaskCardProps) {
                   onEdit(task);
                 }
               }}
-              className="flex w-10 shrink-0 cursor-grab items-center justify-center border-border border-r bg-surface-base/40 text-text-muted transition-colors hover:bg-surface-hover hover:text-text-secondary active:cursor-grabbing sm:w-8"
+              className="flex w-10 shrink-0 cursor-grab items-center justify-center border-border border-r bg-surface-base/40 text-text-muted outline-0 transition-colors hover:bg-surface-hover hover:text-text-secondary active:cursor-grabbing sm:w-8"
             >
               <IconGripVertical size={16} />
             </div>

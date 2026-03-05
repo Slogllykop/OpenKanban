@@ -1,3 +1,14 @@
+import type { TShortcut } from "./types";
+
+export const SHORTCUTS: TShortcut[] = [
+  { keys: ["Tab"], action: "Focus task (yellow border)" },
+  { keys: ["Shift", "Tab"], action: "Focus prev (yellow border)" },
+  { keys: ["Space"], action: "Lift or drop task" },
+  { keys: ["🡹", "🡻", "🡸", "🡺"], action: "Move task" },
+  { keys: ["Esc"], action: "Cancel drag" },
+  { keys: ["Enter"], action: "Edit task" },
+];
+
 export const ADJECTIVES: string[] = [
   "vibrant",
   "cosmic",
