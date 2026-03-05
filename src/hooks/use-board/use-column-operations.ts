@@ -12,149 +12,105 @@ import { makeLocalColumn, showMutationError } from "./utils";
 interface UseColumnOperationsProps {
   slug: string;
   supabase: SupabaseClient;
-  columns: ColumnWithTasks[];
+  columnsRef: React.RefObject<ColumnWithTasks[]>;
   setColumns: React.Dispatch<React.SetStateAction<ColumnWithTasks[]>>;
-  boardRef: React.RefObject<Board | null>;
   isPersistedRef: React.RefObject<boolean>;
-  setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
   onMutationRef: React.RefObject<(() => void) | undefined>;
-  persistBoard: (
-    currentColumns: ColumnWithTasks[],
-  ) => Promise<{ board: Board; idMap: Map<string, string> }>;
+  persistBoard: () => Promise<Board>;
+  enqueue: (op: () => Promise<void>) => void;
 }
 
 export function useColumnOperations({
   slug,
   supabase,
-  columns,
+  columnsRef,
   setColumns,
-  boardRef,
   isPersistedRef,
-  setIsLoading,
   onMutationRef,
   persistBoard,
+  enqueue,
 }: UseColumnOperationsProps) {
   const addColumn = useCallback(
-    async (title = "Untitled") => {
-      const snapshot = columns;
-      try {
-        if (!isPersistedRef.current) {
-          setIsLoading(true);
-          const newLocalCol = makeLocalColumn(title, columns.length);
-          const currentSnapshot = [...columns, newLocalCol];
-          const { board: newBoard, idMap } =
-            await persistBoard(currentSnapshot);
+    (title = "Untitled") => {
+      const position = columnsRef.current ? columnsRef.current.length : 0;
+      const tempCol = makeLocalColumn(title, position);
 
-          setColumns(
-            currentSnapshot.map((col) => {
-              const newId = idMap.get(col.id) ?? col.id;
-              return { ...col, id: newId, board_id: newBoard.id };
-            }),
+      // Optimistic UI update
+      setColumns((prev) => [...prev, tempCol]);
+
+      // Queue DB operation
+      enqueue(async () => {
+        try {
+          const board = await persistBoard();
+          const dbCol = await createColumn(supabase, {
+            board_id: board.id,
+            title,
+            position,
+          });
+
+          setColumns((prev) =>
+            prev.map((col) =>
+              col.id === tempCol.id
+                ? { ...dbCol, tasks: [], board_id: board.id }
+                : col,
+            ),
           );
           onMutationRef.current?.();
-          setIsLoading(false);
-          return;
+        } catch {
+          setColumns((prev) => prev.filter((col) => col.id !== tempCol.id));
+          showMutationError("add column");
         }
-
-        const currentBoard = boardRef.current;
-        if (!currentBoard) return;
-
-        // Optimistic: add a temp column immediately
-        const position = columns.length;
-        const tempCol = makeLocalColumn(title, position);
-        setColumns((prev) => [...prev, tempCol]);
-
-        // Persist in background, then reconcile
-        const dbCol = await createColumn(supabase, {
-          board_id: currentBoard.id,
-          title,
-          position,
-        });
-        setColumns((prev) =>
-          prev.map((col) =>
-            col.id === tempCol.id
-              ? { ...dbCol, tasks: [], board_id: currentBoard.id }
-              : col,
-          ),
-        );
-        onMutationRef.current?.();
-      } catch {
-        setColumns(snapshot);
-        showMutationError("add column");
-      } finally {
-        setIsLoading(false);
-      }
+      });
     },
-    [
-      persistBoard,
-      supabase,
-      columns,
-      isPersistedRef,
-      setIsLoading,
-      setColumns,
-      onMutationRef,
-      boardRef,
-    ],
+    [columnsRef, setColumns, enqueue, persistBoard, supabase, onMutationRef],
   );
 
   const renameColumn = useCallback(
-    async (columnId: string, title: string) => {
-      const snapshot = columns;
-      try {
-        if (!isPersistedRef.current) {
-          setIsLoading(true);
-          const currentSnapshot = columns.map((col) =>
-            col.id === columnId ? { ...col, title } : col,
-          );
+    (columnId: string, title: string) => {
+      const snapshot = columnsRef.current ?? [];
 
-          const { board: newBoard, idMap } =
-            await persistBoard(currentSnapshot);
+      // Optimistic UI update
+      setColumns((prev) =>
+        prev.map((col) => (col.id === columnId ? { ...col, title } : col)),
+      );
 
-          setColumns(
-            currentSnapshot.map((col) => {
-              const newId = idMap.get(col.id) ?? col.id;
-              return { ...col, id: newId, board_id: newBoard.id };
-            }),
-          );
-          onMutationRef.current?.();
-          return;
-        }
+      if (!isPersistedRef.current || columnId.startsWith("local-")) return;
 
-        setColumns((prev) =>
-          prev.map((col) => (col.id === columnId ? { ...col, title } : col)),
-        );
-        if (isPersistedRef.current && !columnId.startsWith("local-")) {
+      enqueue(async () => {
+        try {
           await updateColumn(supabase, slug, { id: columnId, title });
           onMutationRef.current?.();
+        } catch {
+          setColumns(snapshot);
+          showMutationError("rename column");
         }
-      } catch {
-        setColumns(snapshot);
-        showMutationError("rename column");
-      } finally {
-        setIsLoading(false);
-      }
+      });
     },
     [
-      persistBoard,
+      columnsRef,
+      setColumns,
+      isPersistedRef,
+      enqueue,
       supabase,
       slug,
-      columns,
-      isPersistedRef,
-      setIsLoading,
-      setColumns,
       onMutationRef,
     ],
   );
 
   const toggleColumnCollapse = useCallback(
-    async (columnId: string, is_collapsed: boolean) => {
-      const snapshot = columns;
+    (columnId: string, is_collapsed: boolean) => {
+      const snapshot = columnsRef.current ?? [];
+
+      // Optimistic UI update
       setColumns((prev) =>
         prev.map((col) =>
           col.id === columnId ? { ...col, is_collapsed } : col,
         ),
       );
-      if (isPersistedRef.current && !columnId.startsWith("local-")) {
+
+      if (!isPersistedRef.current || columnId.startsWith("local-")) return;
+
+      enqueue(async () => {
         try {
           await updateColumn(supabase, slug, { id: columnId, is_collapsed });
           onMutationRef.current?.();
@@ -162,19 +118,32 @@ export function useColumnOperations({
           setColumns(snapshot);
           showMutationError("toggle column");
         }
-      }
+      });
     },
-    [supabase, slug, columns, setColumns, isPersistedRef, onMutationRef],
+    [
+      columnsRef,
+      setColumns,
+      isPersistedRef,
+      enqueue,
+      supabase,
+      slug,
+      onMutationRef,
+    ],
   );
 
   const removeColumn = useCallback(
-    async (columnId: string) => {
-      if (columns.length <= 1) return; // Keep at least 1 column
+    (columnId: string) => {
+      const currentCols = columnsRef.current ?? [];
+      if (currentCols.length <= 1) return;
 
-      const snapshot = columns;
-
-      const filtered = columns.filter((col) => col.id !== columnId);
+      const snapshot = currentCols;
+      const filtered = currentCols.filter((col) => col.id !== columnId);
       const newCols = filtered.map((col, i) => ({ ...col, position: i }));
+
+      // Optimistic UI update
+      setColumns(newCols);
+
+      if (!isPersistedRef.current || columnId.startsWith("local-")) return;
 
       const colUpdates: Column[] = newCols.map((col) => ({
         id: col.id,
@@ -185,10 +154,7 @@ export function useColumnOperations({
         created_at: col.created_at,
       }));
 
-      // Update UI optimistically
-      setColumns(newCols);
-
-      if (isPersistedRef.current) {
+      enqueue(async () => {
         try {
           await dbDeleteColumn(supabase, slug, columnId);
           if (colUpdates.length > 0) {
@@ -199,20 +165,34 @@ export function useColumnOperations({
           setColumns(snapshot);
           showMutationError("delete column");
         }
-      }
+      });
     },
-    [columns, supabase, slug, setColumns, isPersistedRef, onMutationRef],
+    [
+      columnsRef,
+      setColumns,
+      isPersistedRef,
+      enqueue,
+      supabase,
+      slug,
+      onMutationRef,
+    ],
   );
 
   const moveColumn = useCallback(
-    async (sourceIndex: number, destIndex: number) => {
-      const snapshot = columns;
+    (sourceIndex: number, destIndex: number) => {
+      const currentCols = columnsRef.current ?? [];
+      const snapshot = currentCols;
 
-      const newCols = [...columns];
+      const newCols = [...currentCols];
       const [moved] = newCols.splice(sourceIndex, 1);
       if (!moved) return;
       newCols.splice(destIndex, 0, moved);
       const result = newCols.map((col, i) => ({ ...col, position: i }));
+
+      // Optimistic UI update
+      setColumns(result);
+
+      if (!isPersistedRef.current) return;
 
       const colUpdates: Column[] = result.map((col) => ({
         id: col.id,
@@ -223,9 +203,7 @@ export function useColumnOperations({
         created_at: col.created_at,
       }));
 
-      setColumns(result);
-
-      if (isPersistedRef.current && colUpdates.length > 0) {
+      enqueue(async () => {
         try {
           await updateColumnPositions(supabase, slug, colUpdates);
           onMutationRef.current?.();
@@ -233,9 +211,17 @@ export function useColumnOperations({
           setColumns(snapshot);
           showMutationError("move column");
         }
-      }
+      });
     },
-    [supabase, slug, columns, setColumns, isPersistedRef, onMutationRef],
+    [
+      columnsRef,
+      setColumns,
+      isPersistedRef,
+      enqueue,
+      supabase,
+      slug,
+      onMutationRef,
+    ],
   );
 
   return {

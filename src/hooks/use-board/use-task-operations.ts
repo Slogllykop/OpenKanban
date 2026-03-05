@@ -20,145 +20,105 @@ import { showMutationError } from "./utils";
 interface UseTaskOperationsProps {
   slug: string;
   supabase: SupabaseClient;
-  columns: ColumnWithTasks[];
+  columnsRef: React.RefObject<ColumnWithTasks[]>;
   setColumns: React.Dispatch<React.SetStateAction<ColumnWithTasks[]>>;
-  boardRef: React.RefObject<Board | null>;
   isPersistedRef: React.RefObject<boolean>;
-  setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
   onMutationRef: React.RefObject<(() => void) | undefined>;
-  persistBoard: (
-    currentColumns: ColumnWithTasks[],
-  ) => Promise<{ board: Board; idMap: Map<string, string> }>;
+  persistBoard: () => Promise<Board>;
+  enqueue: (op: () => Promise<void>) => void;
 }
 
 export function useTaskOperations({
   slug,
   supabase,
-  columns,
+  columnsRef,
   setColumns,
-  boardRef,
   isPersistedRef,
-  setIsLoading,
   onMutationRef,
   persistBoard,
+  enqueue,
 }: UseTaskOperationsProps) {
   const addTask = useCallback(
-    async (columnId: string, title: string, priority: Priority = "medium") => {
-      const snapshot = columns;
-      try {
-        if (!isPersistedRef.current) {
-          setIsLoading(true);
-          // First task triggers full persistence
-          const currentSnapshot = columns;
-          const { board: newBoard, idMap } =
-            await persistBoard(currentSnapshot);
+    (columnId: string, title: string, priority: Priority = "medium") => {
+      const currentCols = columnsRef.current ?? [];
+      const col = currentCols.find((c) => c.id === columnId);
+      const position = col ? col.tasks.length : 0;
 
-          const dbColumnId = idMap.get(columnId) ?? columnId;
-          const targetCol = currentSnapshot.find((c) => c.id === columnId);
-          const position = targetCol ? targetCol.tasks.length : 0;
+      // Optimistic: add a temp task immediately
+      const tempTask: Task = {
+        id: `local-${generateUUID()}`,
+        column_id: columnId,
+        title,
+        description: null,
+        priority,
+        position,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
 
-          const newTask = await createTask(supabase, {
-            column_id: dbColumnId,
+      setColumns((prev) =>
+        prev.map((c) =>
+          c.id === columnId ? { ...c, tasks: [...c.tasks, tempTask] } : c,
+        ),
+      );
+
+      enqueue(async () => {
+        try {
+          // Ensure board exists
+          const board = await persistBoard();
+          let targetColumnId = columnId;
+
+          // If the target column is still unpersisted local-, create it first
+          if (columnId.startsWith("local-")) {
+            const currentSnapshot = columnsRef.current ?? [];
+            const targetCol = currentSnapshot.find((c) => c.id === columnId);
+            if (targetCol) {
+              const newCol = await createColumn(supabase, {
+                board_id: board.id,
+                title: targetCol.title,
+                position: targetCol.position,
+              });
+              targetColumnId = newCol.id;
+              setColumns((prev) =>
+                prev.map((c) =>
+                  c.id === columnId ? { ...c, id: newCol.id } : c,
+                ),
+              );
+            }
+          }
+
+          const payload: CreateTaskPayload = {
+            column_id: targetColumnId,
             title,
             priority,
             position,
-          });
+          };
+          const dbTask = await createTask(supabase, payload);
 
-          // Replace local IDs with DB IDs and add the task
           setColumns((prev) =>
-            prev.map((col) => {
-              const newId = idMap.get(col.id) ?? col.id;
-              const updated = { ...col, id: newId, board_id: newBoard.id };
-              return newId === dbColumnId
-                ? { ...updated, tasks: [...col.tasks, newTask] }
-                : updated;
-            }),
+            prev.map((c) => ({
+              ...c,
+              tasks: c.tasks.map((t) => (t.id === tempTask.id ? dbTask : t)),
+            })),
           );
           onMutationRef.current?.();
-          setIsLoading(false);
-          return;
+        } catch {
+          // Rollback task addition
+          setColumns((prev) =>
+            prev.map((c) => ({
+              ...c,
+              tasks: c.tasks.filter((t) => t.id !== tempTask.id),
+            })),
+          );
+          showMutationError("add task");
         }
-
-        // Normal persisted flow
-        let targetColumnId = columnId;
-
-        if (columnId.startsWith("local-") && isPersistedRef.current) {
-          const currentBoard = boardRef.current;
-          const targetCol = columns.find((c) => c.id === columnId);
-          if (currentBoard && targetCol) {
-            const newCol = await createColumn(supabase, {
-              board_id: currentBoard.id,
-              title: targetCol.title,
-              position: targetCol.position,
-            });
-            targetColumnId = newCol.id;
-            setColumns((prev) =>
-              prev.map((c) =>
-                c.id === columnId ? { ...c, id: newCol.id } : c,
-              ),
-            );
-          }
-        }
-
-        const col = columns.find((c) => c.id === columnId);
-        const position = col ? col.tasks.length : 0;
-
-        // Optimistic: add a temp task immediately
-        const tempTask: Task = {
-          id: `local-${generateUUID()}`,
-          column_id: targetColumnId,
-          title,
-          description: null,
-          priority,
-          position,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        };
-        setColumns((prev) =>
-          prev.map((c) =>
-            c.id === columnId || c.id === targetColumnId
-              ? { ...c, id: targetColumnId, tasks: [...c.tasks, tempTask] }
-              : c,
-          ),
-        );
-
-        // Persist in background, then reconcile
-        const payload: CreateTaskPayload = {
-          column_id: targetColumnId,
-          title,
-          priority,
-          position,
-        };
-        const dbTask = await createTask(supabase, payload);
-
-        setColumns((prev) =>
-          prev.map((c) => ({
-            ...c,
-            tasks: c.tasks.map((t) => (t.id === tempTask.id ? dbTask : t)),
-          })),
-        );
-        onMutationRef.current?.();
-      } catch {
-        setColumns(snapshot);
-        showMutationError("add task");
-      } finally {
-        setIsLoading(false);
-      }
+      });
     },
-    [
-      persistBoard,
-      supabase,
-      columns,
-      isPersistedRef,
-      setIsLoading,
-      setColumns,
-      onMutationRef,
-      boardRef,
-    ],
+    [columnsRef, setColumns, enqueue, persistBoard, supabase, onMutationRef],
   );
 
   const editTask = useCallback(
-    async (
+    (
       taskId: string,
       updates: {
         title?: string;
@@ -166,7 +126,7 @@ export function useTaskOperations({
         priority?: Priority;
       },
     ) => {
-      const snapshot = columns;
+      const snapshot = columnsRef.current ?? [];
       setColumns((prev) =>
         prev.map((col) => ({
           ...col,
@@ -175,20 +135,33 @@ export function useTaskOperations({
           ),
         })),
       );
-      try {
-        await updateTask(supabase, slug, { id: taskId, ...updates });
-        onMutationRef.current?.();
-      } catch {
-        setColumns(snapshot);
-        showMutationError("update task");
-      }
+
+      if (!isPersistedRef.current || taskId.startsWith("local-")) return;
+
+      enqueue(async () => {
+        try {
+          await updateTask(supabase, slug, { id: taskId, ...updates });
+          onMutationRef.current?.();
+        } catch {
+          setColumns(snapshot);
+          showMutationError("update task");
+        }
+      });
     },
-    [supabase, slug, columns, setColumns, onMutationRef],
+    [
+      supabase,
+      slug,
+      columnsRef,
+      setColumns,
+      isPersistedRef,
+      enqueue,
+      onMutationRef,
+    ],
   );
 
   const removeTask = useCallback(
-    async (taskId: string) => {
-      const snapshot = columns;
+    (taskId: string) => {
+      const snapshot = columnsRef.current ?? [];
       setColumns((prev) =>
         prev.map((col) => ({
           ...col,
@@ -197,27 +170,41 @@ export function useTaskOperations({
             .map((t, i) => ({ ...t, position: i })),
         })),
       );
-      try {
-        await dbDeleteTask(supabase, slug, taskId);
-        onMutationRef.current?.();
-      } catch {
-        setColumns(snapshot);
-        showMutationError("delete task");
-      }
+
+      if (!isPersistedRef.current || taskId.startsWith("local-")) return;
+
+      enqueue(async () => {
+        try {
+          await dbDeleteTask(supabase, slug, taskId);
+          onMutationRef.current?.();
+        } catch {
+          setColumns(snapshot);
+          showMutationError("delete task");
+        }
+      });
     },
-    [supabase, slug, columns, setColumns, onMutationRef],
+    [
+      supabase,
+      slug,
+      columnsRef,
+      setColumns,
+      isPersistedRef,
+      enqueue,
+      onMutationRef,
+    ],
   );
 
   const moveTask = useCallback(
-    async (
+    (
       sourceColId: string,
       destColId: string,
       sourceIndex: number,
       destIndex: number,
     ) => {
-      const snapshot = columns;
+      const currentCols = columnsRef.current ?? [];
+      const snapshot = currentCols;
 
-      const newCols = columns.map((col) => ({
+      const newCols = currentCols.map((col) => ({
         ...col,
         tasks: [...col.tasks],
       }));
@@ -241,11 +228,15 @@ export function useTaskOperations({
 
       setColumns(newCols);
 
+      if (!isPersistedRef.current) return;
+
       const tasksToUpdate: Task[] = [];
       const affected =
         sourceColId === destColId ? [destCol] : [sourceCol, destCol];
       for (const col of affected) {
+        if (col.id.startsWith("local-")) continue;
         for (const task of col.tasks) {
+          if (task.id.startsWith("local-")) continue;
           tasksToUpdate.push({
             ...task,
             column_id: col.id,
@@ -254,17 +245,27 @@ export function useTaskOperations({
         }
       }
 
-      if (isPersistedRef.current && tasksToUpdate.length > 0) {
-        try {
-          await updateTaskPositions(supabase, slug, tasksToUpdate);
-          onMutationRef.current?.();
-        } catch {
-          setColumns(snapshot);
-          showMutationError("move task");
-        }
+      if (tasksToUpdate.length > 0) {
+        enqueue(async () => {
+          try {
+            await updateTaskPositions(supabase, slug, tasksToUpdate);
+            onMutationRef.current?.();
+          } catch {
+            setColumns(snapshot);
+            showMutationError("move task");
+          }
+        });
       }
     },
-    [supabase, slug, columns, setColumns, isPersistedRef, onMutationRef],
+    [
+      columnsRef,
+      setColumns,
+      isPersistedRef,
+      enqueue,
+      supabase,
+      slug,
+      onMutationRef,
+    ],
   );
 
   return {

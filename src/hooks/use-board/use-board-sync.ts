@@ -2,7 +2,6 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { useCallback } from "react";
 import {
   createBoard,
-  createColumn,
   deleteBoard as dbDeleteBoard,
   getFullBoard,
 } from "@/lib/db";
@@ -38,30 +37,15 @@ export function useBoardSync({
     }
   }, [slug, supabase, boardRef, isPersistedRef, setBoard, setColumns]);
 
-  const persistBoard = useCallback(
-    async (
-      currentColumns: ColumnWithTasks[],
-    ): Promise<{ board: Board; idMap: Map<string, string> }> => {
-      const newBoard = await createBoard(supabase, slug);
-      const idMap = new Map<string, string>();
+  const persistBoard = useCallback(async (): Promise<Board> => {
+    if (boardRef.current) return boardRef.current;
 
-      for (let i = 0; i < currentColumns.length; i++) {
-        const col = currentColumns[i];
-        const dbCol = await createColumn(supabase, {
-          board_id: newBoard.id,
-          title: col.title,
-          position: i,
-        });
-        idMap.set(col.id, dbCol.id);
-      }
-
-      isPersistedRef.current = true;
-      boardRef.current = newBoard;
-      setBoard(newBoard);
-      return { board: newBoard, idMap };
-    },
-    [slug, supabase, boardRef, isPersistedRef, setBoard],
-  );
+    const newBoard = await createBoard(supabase, slug);
+    isPersistedRef.current = true;
+    boardRef.current = newBoard;
+    setBoard(newBoard);
+    return newBoard;
+  }, [slug, supabase, boardRef, isPersistedRef, setBoard]);
 
   const removeBoard = useCallback(async () => {
     if (boardRef.current && isPersistedRef.current) {

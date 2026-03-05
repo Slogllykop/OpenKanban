@@ -11,6 +11,8 @@ interface UseRealtimeOptions {
   slug: string;
   /** Called when another client mutates the board */
   onSync: () => void;
+  /** Called when another client deletes the board */
+  onBoardDeleted?: () => void;
 }
 
 /**
@@ -23,10 +25,16 @@ interface UseRealtimeOptions {
  * Supabase Broadcast does NOT echo events back to the sender,
  * so the mutating client never triggers its own refetch.
  */
-export function useRealtime({ slug, onSync }: UseRealtimeOptions) {
+export function useRealtime({
+  slug,
+  onSync,
+  onBoardDeleted,
+}: UseRealtimeOptions) {
   const channelRef = useRef<RealtimeChannel | null>(null);
   const onSyncRef = useRef(onSync);
   onSyncRef.current = onSync;
+  const onBoardDeletedRef = useRef(onBoardDeleted);
+  onBoardDeletedRef.current = onBoardDeleted;
 
   /** Track if we've already shown the error toast to avoid spam */
   const hasShownErrorRef = useRef(false);
@@ -38,6 +46,10 @@ export function useRealtime({ slug, onSync }: UseRealtimeOptions) {
 
     ch.on("broadcast", { event: "sync" }, () => {
       onSyncRef.current();
+    });
+
+    ch.on("broadcast", { event: "board-deleted" }, () => {
+      onBoardDeletedRef.current?.();
     });
 
     ch.subscribe((status: WebSocketStatus) => {
@@ -77,5 +89,18 @@ export function useRealtime({ slug, onSync }: UseRealtimeOptions) {
     }
   }, []);
 
-  return { broadcastSync };
+  /** Tell every other viewer that the board was deleted */
+  const broadcastBoardDeleted = useCallback(() => {
+    try {
+      channelRef.current?.send({
+        type: "broadcast",
+        event: "board-deleted",
+        payload: {},
+      });
+    } catch {
+      // Non-critical - local deletion already succeeded
+    }
+  }, []);
+
+  return { broadcastSync, broadcastBoardDeleted };
 }

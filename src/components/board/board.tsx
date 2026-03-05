@@ -2,7 +2,7 @@
 
 import { DragDropContext, type DropResult } from "@hello-pangea/dnd";
 import { LayoutGroup } from "motion/react";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { AddColumn } from "@/components/board/add-column";
 import { BoardToolbar } from "@/components/board/board-toolbar";
@@ -13,6 +13,7 @@ import { TaskModal } from "@/components/board/task-modal";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { useBoard } from "@/hooks/use-board";
 import { useDevice } from "@/hooks/use-device";
+import { useHotKeys } from "@/hooks/use-hotkeys";
 import { usePresence } from "@/hooks/use-presence";
 import { useRealtime } from "@/hooks/use-realtime";
 import { exportBoard } from "@/lib/export";
@@ -31,11 +32,22 @@ export function Board({ slug, initialBoard, initialColumns }: BoardProps) {
   // Ref to hold refreshFromDB - avoids circular dependency between hooks
   const refreshRef = useRef<(() => Promise<void>) | undefined>(undefined);
 
+  // Ref to hold replaceState - avoids circular dependency between hooks
+  const replaceStateRef = useRef<
+    ((newBoard: null, newColumns: []) => void) | undefined
+  >(undefined);
+
   // Realtime: broadcast sync after every mutation, refetch on incoming sync
-  const { broadcastSync } = useRealtime({
+  const { broadcastSync, broadcastBoardDeleted } = useRealtime({
     slug,
     onSync: () => {
       refreshRef.current?.();
+    },
+    onBoardDeleted: () => {
+      toast.error("Board deleted", {
+        description: "Another user has deleted this board.",
+      });
+      replaceStateRef.current?.(null, []); // This resets the board to initial To Do state
     },
   });
 
@@ -51,6 +63,7 @@ export function Board({ slug, initialBoard, initialColumns }: BoardProps) {
     moveTask,
     moveColumn,
     removeBoard,
+    replaceState,
     refreshFromDB,
   } = useBoard({
     slug,
@@ -59,8 +72,44 @@ export function Board({ slug, initialBoard, initialColumns }: BoardProps) {
     onMutation: broadcastSync,
   });
 
-  // Wire the ref after useBoard returns
+  // Wire the refs after useBoard returns
   refreshRef.current = refreshFromDB;
+  replaceStateRef.current = replaceState;
+
+  // Keyboard shortcuts (desktop only)
+  const hotKeyBindings = useMemo(
+    () => [
+      {
+        key: "j",
+        ctrlOrCmd: true,
+        action: () => addColumn(),
+      },
+      {
+        key: "ArrowUp",
+        ctrlOrCmd: true,
+        action: () => {
+          for (const col of columns) {
+            if (col.is_collapsed) {
+              toggleColumnCollapse(col.id, false);
+            }
+          }
+        },
+      },
+      {
+        key: "ArrowDown",
+        ctrlOrCmd: true,
+        action: () => {
+          for (const col of columns) {
+            if (!col.is_collapsed) {
+              toggleColumnCollapse(col.id, true);
+            }
+          }
+        },
+      },
+    ],
+    [addColumn, columns, toggleColumnCollapse],
+  );
+  useHotKeys(hotKeyBindings);
 
   // Presence
   const { viewerCount, isConnected } = usePresence(slug);
@@ -105,17 +154,20 @@ export function Board({ slug, initialBoard, initialColumns }: BoardProps) {
     setIsDeletingBoard(true);
     try {
       await removeBoard();
+      // Notify other users looking at this board
+      broadcastBoardDeleted();
     } finally {
       setIsDeletingBoard(false);
       setShowDeleteBoard(false);
     }
   }
 
-  // Column delete handler
-  async function handleDeleteColumn() {
+  // Column delete handler (optimistic: close dialog instantly, removeColumn handles rollback)
+  function handleDeleteColumn() {
     if (!deletingColumnId) return;
-    await removeColumn(deletingColumnId);
+    const columnId = deletingColumnId;
     setDeletingColumnId(null);
+    removeColumn(columnId);
   }
 
   // Task delete handler

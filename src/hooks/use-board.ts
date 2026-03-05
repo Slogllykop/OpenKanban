@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import type { Board, ColumnWithTasks } from "@/lib/types";
 
@@ -21,15 +21,26 @@ export function useBoard({
     if (initialColumns.length > 0) return initialColumns;
     return [getInitialLocalColumn()];
   });
-  const [isLoading, setIsLoading] = useState(false);
 
   /** Whether board + columns have been persisted to DB */
   const isPersistedRef = useRef(initialBoard !== null);
   /** Store the board object for use across async calls */
   const boardRef = useRef<Board | null>(initialBoard);
+  /** Store the latest columns for use in async queued closures */
+  const columnsRef = useRef(columns);
+  columnsRef.current = columns;
   /** Ref to latest onMutation callback (avoids stale closures) */
   const onMutationRef = useRef(onMutation);
   onMutationRef.current = onMutation;
+
+  /** Async mutation queue: ensures one DB operation runs at a time */
+  const queueRef = useRef<Promise<void>>(Promise.resolve());
+
+  const enqueue = useCallback((operation: () => Promise<void>) => {
+    queueRef.current = queueRef.current.then(operation).catch((err) => {
+      console.error("Mutation queue error:", err);
+    });
+  }, []);
 
   const supabase = createClient();
 
@@ -52,31 +63,28 @@ export function useBoard({
   } = useColumnOperations({
     slug,
     supabase,
-    columns,
+    columnsRef,
     setColumns,
-    boardRef,
     isPersistedRef,
-    setIsLoading,
     onMutationRef,
     persistBoard,
+    enqueue,
   });
 
   const { addTask, editTask, removeTask, moveTask } = useTaskOperations({
     slug,
     supabase,
-    columns,
+    columnsRef,
     setColumns,
-    boardRef,
     isPersistedRef,
-    setIsLoading,
     onMutationRef,
     persistBoard,
+    enqueue,
   });
 
   return {
     board,
     columns,
-    isLoading,
     addColumn,
     renameColumn,
     toggleColumnCollapse,

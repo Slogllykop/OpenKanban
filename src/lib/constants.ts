@@ -7,6 +7,9 @@ export const SHORTCUTS: TShortcut[] = [
   { keys: ["🡹", "🡻", "🡸", "🡺"], action: "Move task" },
   { keys: ["Esc"], action: "Cancel drag" },
   { keys: ["Enter"], action: "Edit task" },
+  { keys: ["Ctrl / ⌘", "J"], action: "New column" },
+  { keys: ["Ctrl / ⌘", "🡹"], action: "Expand all columns" },
+  { keys: ["Ctrl / ⌘", "🡻"], action: "Collapse all columns" },
 ];
 
 export const ADJECTIVES: string[] = [
