@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { useCallback } from "react";
 import {
+  batchToggleColumnsCollapse,
   createColumn,
   deleteColumn as dbDeleteColumn,
   updateColumn,
@@ -163,6 +164,46 @@ export function useColumnOperations({
     ],
   );
 
+  const toggleAllColumnsCollapse = useCallback(
+    (is_collapsed: boolean) => {
+      const currentCols = columnsRef.current ?? [];
+
+      // Check if all columns are already in the desired state
+      const isAlreadyInState = currentCols.every(
+        (col) => col.is_collapsed === is_collapsed,
+      );
+      if (isAlreadyInState) return;
+
+      const snapshot = currentCols;
+
+      // Optimistic UI update
+      setColumns((prev) => prev.map((col) => ({ ...col, is_collapsed })));
+
+      if (!isPersistedRef.current) return;
+
+      enqueue(async () => {
+        try {
+          await batchToggleColumnsCollapse(supabase, slug, is_collapsed);
+          onMutationRef.current?.();
+        } catch {
+          setColumns(snapshot);
+          showMutationError(
+            `toggle all columns ${is_collapsed ? "collapse" : "expand"}`,
+          );
+        }
+      });
+    },
+    [
+      columnsRef,
+      setColumns,
+      isPersistedRef,
+      enqueue,
+      supabase,
+      slug,
+      onMutationRef,
+    ],
+  );
+
   const removeColumn = useCallback(
     (columnId: string) => {
       const currentCols = columnsRef.current ?? [];
@@ -260,6 +301,7 @@ export function useColumnOperations({
     addColumn,
     renameColumn,
     toggleColumnCollapse,
+    toggleAllColumnsCollapse,
     removeColumn,
     moveColumn,
   };

@@ -15,7 +15,7 @@ const VELOCITY_THRESHOLD = 300;
  * navigation buttons and drag gestures can drive the same
  * AnimatePresence animation.
  *
- * @param totalColumns – current number of columns
+ * @param totalColumns - current number of columns
  * @returns navigation state & handlers to wire into the UI
  */
 export function useColumnSwipe(totalColumns: number) {
@@ -52,7 +52,7 @@ export function useColumnSwipe(totalColumns: number) {
     [totalColumns, safeIndex],
   );
 
-  /** Drag-end handler – decides whether the swipe was large/fast enough */
+  /** Drag-end handler - decides whether the swipe was large/fast enough */
   const onDragEnd = useCallback(
     (_event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
       const { offset, velocity } = info;

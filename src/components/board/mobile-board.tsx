@@ -24,7 +24,7 @@ interface MobileBoardProps {
   onRequestDeleteColumn: (columnId: string) => void;
 }
 
-/** Slide variants – direction is passed via `custom` */
+/** Slide variants - direction is passed via `custom` */
 const slideVariants = {
   enter: (dir: number) => ({
     x: dir > 0 ? "100%" : "-100%",
@@ -134,7 +134,7 @@ export function MobileBoard({
         </div>
       )}
 
-      {/* Animated task list – swipe or button navigation */}
+      {/* Animated task list - swipe or button navigation */}
       {activeColumn && (
         <div className="relative flex flex-1 overflow-hidden">
           <AnimatePresence initial={false} mode="popLayout" custom={direction}>

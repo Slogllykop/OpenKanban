@@ -58,6 +58,7 @@ export function useBoard({
     addColumn,
     renameColumn,
     toggleColumnCollapse,
+    toggleAllColumnsCollapse,
     removeColumn,
     moveColumn,
   } = useColumnOperations({
@@ -88,6 +89,7 @@ export function useBoard({
     addColumn,
     renameColumn,
     toggleColumnCollapse,
+    toggleAllColumnsCollapse,
     removeColumn,
     addTask,
     editTask,

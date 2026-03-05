@@ -56,6 +56,7 @@ export function Board({ slug, initialBoard, initialColumns }: BoardProps) {
     addColumn,
     renameColumn,
     toggleColumnCollapse,
+    toggleAllColumnsCollapse,
     removeColumn,
     addTask,
     editTask,
@@ -87,27 +88,15 @@ export function Board({ slug, initialBoard, initialColumns }: BoardProps) {
       {
         key: "ArrowUp",
         ctrlOrCmd: true,
-        action: () => {
-          for (const col of columns) {
-            if (col.is_collapsed) {
-              toggleColumnCollapse(col.id, false);
-            }
-          }
-        },
+        action: () => toggleAllColumnsCollapse(false),
       },
       {
         key: "ArrowDown",
         ctrlOrCmd: true,
-        action: () => {
-          for (const col of columns) {
-            if (!col.is_collapsed) {
-              toggleColumnCollapse(col.id, true);
-            }
-          }
-        },
+        action: () => toggleAllColumnsCollapse(true),
       },
     ],
-    [addColumn, columns, toggleColumnCollapse],
+    [addColumn, toggleAllColumnsCollapse],
   );
   useHotKeys(hotKeyBindings);
 

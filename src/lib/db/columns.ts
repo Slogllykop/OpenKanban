@@ -100,3 +100,17 @@ export async function updateColumnPositions(
   });
   if (error) handleSupabaseError(error);
 }
+
+/** Batch toggle the collapse state of all columns for a board */
+export async function batchToggleColumnsCollapse(
+  supabase: SupabaseClient,
+  slug: string,
+  isCollapsed: boolean,
+): Promise<void> {
+  const { error } = await supabase.rpc("batch_toggle_columns_collapse_p", {
+    p_slug: slug,
+    p_is_collapsed: isCollapsed,
+  });
+
+  if (error) handleSupabaseError(error);
+}
