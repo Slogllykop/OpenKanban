@@ -2,12 +2,14 @@
 
 import { IconKeyboard, IconX } from "@tabler/icons-react";
 import { AnimatePresence, motion } from "motion/react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useClickOutside } from "@/hooks/use-click-outside";
 import { SHORTCUTS } from "@/lib/constants";
 
 export function KeyboardShortcuts() {
   const [isOpen, setIsOpen] = useState(false);
   const [showHint, setShowHint] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const hasSeen = localStorage.getItem("okb_has_seen_shortcuts");
@@ -27,8 +29,14 @@ export function KeyboardShortcuts() {
     setIsOpen(!isOpen);
   };
 
+  // Close on outside click
+  useClickOutside(containerRef, () => setIsOpen(false), isOpen);
+
   return (
-    <div className="fixed right-6 bottom-6 z-50 flex flex-col items-end gap-3">
+    <div
+      ref={containerRef}
+      className="fixed right-6 bottom-6 z-50 flex flex-col items-end gap-3"
+    >
       <AnimatePresence>
         {isOpen && (
           <motion.div

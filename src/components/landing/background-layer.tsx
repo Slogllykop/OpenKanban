@@ -1,3 +1,5 @@
+"use client";
+
 import { ChromaFlow, Shader, Swirl } from "shaders/react";
 import GrainOverlay from "./gradient-overlay";
 

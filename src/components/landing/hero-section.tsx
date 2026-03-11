@@ -5,11 +5,19 @@ import {
   motion,
   useTransform,
 } from "motion/react";
+import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Logo } from "@/components/ui/logo";
 import { generateRandomSlug } from "@/lib/utils";
-import { BackgroundLayer } from "./background-layer";
+
+const BackgroundLayer = dynamic(
+  () =>
+    import("./background-layer").then((mod) => ({
+      default: mod.BackgroundLayer,
+    })),
+  { ssr: false },
+);
 
 export const HeroSection = ({
   scrollYProgress,
