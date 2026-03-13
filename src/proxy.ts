@@ -83,10 +83,13 @@ export async function proxy(request: NextRequest) {
   }
 
   // Rate limit board page visits by IP
+  // Finding #10: Prefer x-real-ip; fall back to the *last* x-forwarded-for
+  // entry (appended by the trusted reverse proxy) to resist spoofing.
   const limiter = getBoardVisitLimiter();
   if (limiter) {
     const ip =
-      request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
+      request.headers.get("x-real-ip") ??
+      request.headers.get("x-forwarded-for")?.split(",").pop()?.trim() ??
       "anonymous";
     const { success } = await limiter.limit(ip);
     if (!success) {

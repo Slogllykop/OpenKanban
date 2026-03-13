@@ -16,15 +16,17 @@ export async function getTasksByBoard(
   return (response.data as Task[]) ?? [];
 }
 
-/** Create a new task */
+/** Create a new task (slug-scoped — Finding #7) */
 export async function createTask(
   supabase: SupabaseClient,
+  slug: string,
   payload: CreateTaskPayload,
 ): Promise<Task> {
   createTaskSchema.parse(payload);
 
   const response = await supabase
     .rpc("create_task_p", {
+      p_slug: slug,
       p_column_id: payload.column_id,
       p_title: payload.title,
       p_description: payload.description ?? null,
@@ -75,6 +77,9 @@ export async function deleteTask(
   if (error) handleSupabaseError(error);
 }
 
+/** Maximum batch size for position updates (Finding #4) */
+const MAX_BATCH_SIZE = 200;
+
 /** Batch update task positions and/or column assignments */
 export async function updateTaskPositions(
   supabase: SupabaseClient,
@@ -87,6 +92,11 @@ export async function updateTaskPositions(
   const uniqueUpdates = Array.from(
     new Map(updates.map((item) => [item.id, item])).values(),
   );
+
+  // Finding #4: Client-side batch size guard
+  if (uniqueUpdates.length > MAX_BATCH_SIZE) {
+    throw new Error(`Batch size exceeds maximum of ${MAX_BATCH_SIZE} items`);
+  }
 
   const payload = uniqueUpdates.map((task) => ({
     id: task.id,

@@ -51,7 +51,7 @@ export function useColumnOperations({
             const currentSnapshot = columnsRef.current ?? [];
             for (const col of currentSnapshot) {
               if (col.id.startsWith("local-") && col.id !== tempCol.id) {
-                const newCol = await createColumn(supabase, {
+                const newCol = await createColumn(supabase, slug, {
                   board_id: board.id,
                   title: col.title,
                   position: col.position,
@@ -67,7 +67,7 @@ export function useColumnOperations({
             }
           }
 
-          const dbCol = await createColumn(supabase, {
+          const dbCol = await createColumn(supabase, slug, {
             board_id: board.id,
             title,
             position,
@@ -93,6 +93,7 @@ export function useColumnOperations({
       enqueue,
       persistBoard,
       supabase,
+      slug,
       onMutationRef,
       isPersistedRef,
     ],

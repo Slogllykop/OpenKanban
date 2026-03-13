@@ -73,7 +73,7 @@ export function useTaskOperations({
             const currentSnapshot = columnsRef.current ?? [];
             const targetCol = currentSnapshot.find((c) => c.id === columnId);
             if (targetCol) {
-              const newCol = await createColumn(supabase, {
+              const newCol = await createColumn(supabase, slug, {
                 board_id: board.id,
                 title: targetCol.title,
                 position: targetCol.position,
@@ -93,7 +93,7 @@ export function useTaskOperations({
             priority,
             position,
           };
-          const dbTask = await createTask(supabase, payload);
+          const dbTask = await createTask(supabase, slug, payload);
 
           setColumns((prev) =>
             prev.map((c) => ({
@@ -114,7 +114,15 @@ export function useTaskOperations({
         }
       });
     },
-    [columnsRef, setColumns, enqueue, persistBoard, supabase, onMutationRef],
+    [
+      columnsRef,
+      setColumns,
+      enqueue,
+      persistBoard,
+      supabase,
+      slug,
+      onMutationRef,
+    ],
   );
 
   const editTask = useCallback(

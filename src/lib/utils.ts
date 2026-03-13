@@ -52,13 +52,22 @@ export function getChannelTopic(prefix: string, slug: string): string {
 }
 
 /**
- * Generates a random human-readable slug consisting of an adjective, a noun, and a 4-digit number.
+ * Generates a random human-readable slug consisting of an adjective, a noun,
+ * and a cryptographic random hex segment.
  * Useful for creating unique, memorable board identifiers.
  *
- * @returns A string in the format "adjective-noun-1234".
+ * Finding #11: Uses crypto.getRandomValues() for 8 hex characters (~4 billion
+ * possibilities per adjective-noun combo), significantly increasing entropy
+ * over the previous 4-digit number (~9,000 possibilities).
+ *
+ * @returns A string in the format "adjective-noun-a3f9b2c1".
  */
 export function generateRandomSlug(): string {
   const pick = (arr: string[]) => arr[Math.floor(Math.random() * arr.length)];
-  const num = Math.floor(1000 + Math.random() * 9000);
-  return `${pick(ADJECTIVES)}-${pick(NOUNS)}-${num}`;
+  const bytes = new Uint8Array(4);
+  crypto.getRandomValues(bytes);
+  const hex = Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join(
+    "",
+  );
+  return `${pick(ADJECTIVES)}-${pick(NOUNS)}-${hex}`;
 }

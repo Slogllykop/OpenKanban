@@ -20,15 +20,17 @@ export async function getColumns(
   return (response.data as Column[]) ?? [];
 }
 
-/** Create a new column */
+/** Create a new column (slug-scoped — Finding #7) */
 export async function createColumn(
   supabase: SupabaseClient,
+  slug: string,
   payload: CreateColumnPayload,
 ): Promise<Column> {
   createColumnSchema.parse(payload);
 
   const response = await supabase
     .rpc("create_column_p", {
+      p_slug: slug,
       p_board_id: payload.board_id,
       p_title: payload.title,
       p_position: payload.position,
@@ -75,6 +77,9 @@ export async function deleteColumn(
   if (error) handleSupabaseError(error);
 }
 
+/** Maximum batch size for position updates (Finding #4) */
+const MAX_BATCH_SIZE = 200;
+
 /** Batch update column positions */
 export async function updateColumnPositions(
   supabase: SupabaseClient,
@@ -86,6 +91,11 @@ export async function updateColumnPositions(
   const uniqueUpdates = Array.from(
     new Map(updates.map((item) => [item.id, item])).values(),
   );
+
+  // Finding #4: Client-side batch size guard
+  if (uniqueUpdates.length > MAX_BATCH_SIZE) {
+    throw new Error(`Batch size exceeds maximum of ${MAX_BATCH_SIZE} items`);
+  }
 
   const payload = uniqueUpdates.map((col) => ({
     id: col.id,

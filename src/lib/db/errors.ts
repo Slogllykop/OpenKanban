@@ -1,12 +1,15 @@
-/** Helper to throw proper Error objects from Supabase errors */
+/**
+ * Handle Supabase errors safely.
+ *
+ * Full error details (message, code, hints) are logged server-side for
+ * debugging. Only a generic message is thrown to the client to avoid
+ * leaking database internals (table names, constraint details, RPC
+ * signatures). See: Security Audit Finding #2.
+ */
 export function handleSupabaseError(error: unknown): never {
-  if (error && typeof error === "object" && "message" in error) {
-    const err = error as Record<string, unknown>;
-    throw new Error(
-      `Supabase Error: ${String(err.message)}${err.code ? ` (Code: ${String(err.code)})` : ""}${
-        err.details ? ` Details: ${String(err.details)}` : ""
-      }${err.hint ? ` Hint: ${String(err.hint)}` : ""}`,
-    );
-  }
-  throw new Error(String(error));
+  // Log full details server-side for debugging
+  console.error("[Supabase Error]", error);
+
+  // Throw a generic message to the client
+  throw new Error("An unexpected error occurred. Please try again.");
 }
